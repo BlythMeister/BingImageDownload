@@ -12,7 +12,7 @@ namespace BingWallpaper
 {
     internal class Program
     {
-        private static readonly string url = ConfigurationManager.AppSettings["BingUrl"];
+        private const string url = "http://bing.com";
         private static readonly string savePath = ConfigurationManager.AppSettings["ImageSavePath"];
         private static readonly string downloadPath = ConfigurationManager.AppSettings["ImageSavePathTemp"];
         private static readonly string[] countries = new[] { "en-US", "en-UK", "en-GB", "en-AU", "en-NZ", "en-CA", "de-DE", "zh-CN", "ja-JP" };

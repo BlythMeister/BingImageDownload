@@ -14,7 +14,9 @@ namespace BingWallpaper
     {
         private const string url = "http://bing.com";
         private static readonly string savePath = ConfigurationManager.AppSettings["ImageSavePath"];
-        private static readonly string downloadPath = ConfigurationManager.AppSettings["ImageSavePathTemp"];
+        private static readonly string downloadPath = Path.Combine(savePath, "Temp");
+        private static readonly string archivePath = Path.Combine(savePath, "Archive");
+        private static readonly int archiveMonths = int.Parse(ConfigurationManager.AppSettings["ArchiveAfterMonths"]);
         private static readonly string[] countries = new[] { "en-US", "en-UK", "en-GB", "en-AU", "en-NZ", "en-CA", "de-DE", "zh-CN", "ja-JP" };
         private static readonly List<byte[]> hashTable = new List<byte[]>();
 
@@ -22,7 +24,12 @@ namespace BingWallpaper
         {
             try
             {
+                if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
+                if (!Directory.Exists(downloadPath)) Directory.CreateDirectory(downloadPath);
+                if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
+                ArchiveOldImages();
                 GetBingImages();
+                if (Directory.Exists(downloadPath)) Directory.Delete(downloadPath, true);
             }
             catch (Exception e)
             {
@@ -31,10 +38,22 @@ namespace BingWallpaper
             }
         }
 
+        private static void ArchiveOldImages()
+        {
+            if (archiveMonths <= 0) return;
+            
+            foreach (var file in Directory.GetFiles(savePath))
+            {
+                var fileInfo = new FileInfo(file);
+                if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddMonths(archiveMonths * -1))
+                {
+                    fileInfo.MoveTo(Path.Combine(archivePath, fileInfo.Name));
+                }
+            }
+        }
+
         private static void GetBingImages()
         {
-            if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
-            if (!Directory.Exists(downloadPath)) Directory.CreateDirectory(downloadPath);
             var downloadedImages = 0;
             AddImagesToHash();
 
@@ -69,7 +88,6 @@ namespace BingWallpaper
             }
 
             Console.WriteLine("Found {0} new images", downloadedImages);
-            if (Directory.Exists(downloadPath)) Directory.Delete(downloadPath, true);
         }
 
         private static void AddImagesToHash()

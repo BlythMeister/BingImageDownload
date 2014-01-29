@@ -17,7 +17,7 @@ namespace BingWallpaper
         private static readonly string downloadPath = Path.Combine(savePath, "Temp");
         private static readonly string archivePath = Path.Combine(savePath, "Archive");
         private static readonly int archiveMonths = int.Parse(ConfigurationManager.AppSettings["ArchiveAfterMonths"]);
-        private static readonly string[] countries = new[] { "en-US", "en-UK", "en-GB", "en-AU", "en-NZ", "en-CA", "de-DE", "zh-CN", "ja-JP" };
+        private static readonly string[] countries = ConfigurationManager.AppSettings["Countries"].Split(',');
         private static readonly List<byte[]> hashTable = new List<byte[]>();
 
         private static void Main(string[] args)

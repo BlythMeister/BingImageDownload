@@ -16,32 +16,53 @@ namespace BingWallpaper
         private static readonly string savePath = ConfigurationManager.AppSettings["ImageSavePath"];
         private static readonly string downloadPath = Path.Combine(savePath, "Temp");
         private static readonly string archivePath = Path.Combine(savePath, "Archive");
+        private static readonly string logPath = Path.Combine(savePath, "Logs");
         private static readonly int archiveMonths = int.Parse(ConfigurationManager.AppSettings["ArchiveAfterMonths"]);
         private static readonly string[] countries = ConfigurationManager.AppSettings["Countries"].Split(',');
         private static readonly List<byte[]> hashTable = new List<byte[]>();
+        private static readonly List<string> urlsRetrieved = new List<string>();
 
         private static void Main(string[] args)
         {
             try
             {
-                if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
-                if (!Directory.Exists(downloadPath)) Directory.CreateDirectory(downloadPath);
-                if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
+                SetupDirectoriesAndLogging();
                 ArchiveOldImages();
                 GetBingImages();
-                if (Directory.Exists(downloadPath)) Directory.Delete(downloadPath, true);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: {0}", e.Message);
+                ConsoleWriter.WriteLine("Error: {0}", e.Message);
                 throw;
             }
+            finally
+            {
+                if (Directory.Exists(downloadPath)) Directory.Delete(downloadPath, true);
+            }
+        }
+
+        private static void SetupDirectoriesAndLogging()
+        {
+            if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
+            if (!Directory.Exists(downloadPath)) Directory.CreateDirectory(downloadPath);
+            if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
+            if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
+
+            ConsoleWriter.SetupLogWriter(Path.Combine(logPath,string.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
+            foreach (var file in Directory.GetFiles(logPath))
+            {
+                var fileInfo = new FileInfo(file);
+                if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddDays(-14))
+                {
+                    fileInfo.Delete();}
+            }
+
         }
 
         private static void ArchiveOldImages()
         {
             if (archiveMonths <= 0) return;
-            
+
             foreach (var file in Directory.GetFiles(savePath))
             {
                 var fileInfo = new FileInfo(file);
@@ -55,10 +76,13 @@ namespace BingWallpaper
         private static void GetBingImages()
         {
             var downloadedImages = 0;
+
             AddImagesToHash();
 
             foreach (var country in countries)
             {
+                var countryImages = 0;
+                var countryDuplicateImages = 0;
                 var currentIndex = 0;
                 var moreImages = true;
                 while (moreImages)
@@ -72,36 +96,47 @@ namespace BingWallpaper
                     {
                         foreach (XmlNode xmlNode in xmlNodeList)
                         {
-                            downloadedImages += DownloadAndSaveImage(xmlNode);
+                            ConsoleWriter.WriteLine("Image for: '{0}' on {1}-{2} using index {3}", country, xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText, currentIndex);
+                            if (DownloadAndSaveImage(xmlNode))
+                            {
+                                countryImages++;
+                            }
+                            else
+                            {
+                                countryDuplicateImages++;
+                            }
                         }
 
-                        if (xmlNodeList.Count < 8)
+                        if (currentIndex >= 20)
                         {
                             moreImages = false;
                         }
-                        else
-                        {
-                            currentIndex += 8;
-                        }
+
+                        currentIndex += 2;
                     }
                 }
+
+                downloadedImages += countryImages;
+                ConsoleWriter.WriteLine("Found {0} new images for {1}", countryImages, country);
+                ConsoleWriter.WriteLine("Found {0} duplicate images for {1}", countryDuplicateImages, country);
             }
 
-            Console.WriteLine("Found {0} new images", downloadedImages);
+            ConsoleWriter.WriteLine("Found {0} new images", downloadedImages);
         }
 
         private static void AddImagesToHash()
         {
-            foreach (var file in Directory.GetFiles(savePath))
+            foreach (var file in Directory.GetFiles(savePath, "*.jpg"))
             {
                 hashTable.Add(Sha256HashFile(file));
             }
         }
 
-        private static int DownloadAndSaveImage(XmlNode xmlNode)
+        private static bool DownloadAndSaveImage(XmlNode xmlNode)
         {
-            var downloadedImages = 0;
-            var fileurl = string.Format("{0}{1}", url, xmlNode.SelectSingleNode("url").InnerText);
+            var fileurl = string.Format("{0}{1}_1920x1080.jpg", url, xmlNode.SelectSingleNode("urlBase").InnerText);
+            if (urlsRetrieved.Contains(fileurl)) return false;
+
             var filePath = Path.Combine(savePath, GetFileName(xmlNode));
             var tempfilename = Path.Combine(downloadPath, Guid.NewGuid() + ".jpg");
             var fileWebRequest = WebRequest.Create(fileurl);
@@ -126,17 +161,15 @@ namespace BingWallpaper
 
             if (!ImageInHash(tempfilename) && !File.Exists(filePath))
             {
-                Console.WriteLine("New File Found, Saving {0}", filePath);
+                ConsoleWriter.WriteLine("Found Image For {0}-{1}", xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText);
                 File.Move(tempfilename, filePath);
                 hashTable.Add(Sha256HashFile(filePath));
-                downloadedImages++;
+                urlsRetrieved.Add(fileurl);
+                return true;
             }
-            else
-            {
-                Console.WriteLine("Duplicate Content Found, Will Disacrd {0}", tempfilename);
-                File.Delete(tempfilename);
-            }
-            return downloadedImages;
+
+            File.Delete(tempfilename);
+            return false;
         }
 
         private static bool ImageInHash(string tempfilename)
@@ -168,7 +201,7 @@ namespace BingWallpaper
 
         private static XmlNodeList GetImages(int currentIndex, string country)
         {
-            var webRequest = WebRequest.Create(string.Format("{0}/HPImageArchive.aspx?format=xml&idx={1}&n=8&mkt={2}", url, currentIndex, country));
+            var webRequest = WebRequest.Create(string.Format("{0}/HPImageArchive.aspx?format=xml&idx={1}&n=2&mkt={2}", url, currentIndex, country));
             using (var webResponse = webRequest.GetResponse())
             {
                 using (var streamReader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8))

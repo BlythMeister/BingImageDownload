@@ -107,12 +107,7 @@ namespace BingWallpaper
                             }
                         }
 
-                        if (currentIndex >= 20)
-                        {
-                            moreImages = false;
-                        }
-
-                        currentIndex += 2;
+                        currentIndex += 1;
                     }
                 }
 
@@ -201,7 +196,7 @@ namespace BingWallpaper
 
         private static XmlNodeList GetImages(int currentIndex, string country)
         {
-            var webRequest = WebRequest.Create(string.Format("{0}/HPImageArchive.aspx?format=xml&idx={1}&n=2&mkt={2}", url, currentIndex, country));
+            var webRequest = WebRequest.Create(string.Format("{0}/HPImageArchive.aspx?format=xml&idx={1}&n=1&mkt={2}", url, currentIndex, country));
             using (var webResponse = webRequest.GetResponse())
             {
                 using (var streamReader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8))

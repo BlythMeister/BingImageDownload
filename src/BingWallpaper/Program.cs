@@ -191,7 +191,8 @@ namespace BingWallpaper
                 name = name.Substring(0, name.LastIndexOf("("));
             }
             name += ".jpg";
-            return name;
+
+            return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 
         private static XmlNodeList GetImages(int currentIndex, string country)

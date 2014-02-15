@@ -4,9 +4,10 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
+using AForge.Imaging;
+using Image = System.Drawing.Image;
 
 namespace BingWallpaper
 {
@@ -15,11 +16,12 @@ namespace BingWallpaper
         private const string url = "http://bing.com";
         private static readonly string savePath = ConfigurationManager.AppSettings["ImageSavePath"];
         private static readonly string downloadPath = Path.Combine(savePath, "Temp");
+        private static readonly string hitogramPath = Path.Combine(savePath, "TempHistogram");
         private static readonly string archivePath = Path.Combine(savePath, "Archive");
         private static readonly string logPath = Path.Combine(savePath, "Logs");
         private static readonly int archiveMonths = int.Parse(ConfigurationManager.AppSettings["ArchiveAfterMonths"]);
         private static readonly string[] countries = ConfigurationManager.AppSettings["Countries"].Split(',');
-        private static readonly List<byte[]> hashTable = new List<byte[]>();
+        private static readonly List<int[]> histogramHashTable = new List<int[]>();
         private static readonly List<string> urlsRetrieved = new List<string>();
 
         private static void Main(string[] args)
@@ -37,24 +39,32 @@ namespace BingWallpaper
             }
             finally
             {
-                if (Directory.Exists(downloadPath)) Directory.Delete(downloadPath, true);
+                TidyTempFolders();
             }
+        }
+
+        private static void TidyTempFolders()
+        {
+            if (Directory.Exists(downloadPath)) Directory.Delete(downloadPath, true);
+            if (Directory.Exists(hitogramPath)) Directory.Delete(hitogramPath, true);
         }
 
         private static void SetupDirectoriesAndLogging()
         {
             if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
             if (!Directory.Exists(downloadPath)) Directory.CreateDirectory(downloadPath);
+            if (!Directory.Exists(hitogramPath)) Directory.CreateDirectory(hitogramPath);
             if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
             if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
 
-            ConsoleWriter.SetupLogWriter(Path.Combine(logPath,string.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
+            ConsoleWriter.SetupLogWriter(Path.Combine(logPath, string.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
             foreach (var file in Directory.GetFiles(logPath))
             {
                 var fileInfo = new FileInfo(file);
                 if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddDays(-14))
                 {
-                    fileInfo.Delete();}
+                    fileInfo.Delete();
+                }
             }
 
         }
@@ -123,7 +133,7 @@ namespace BingWallpaper
         {
             foreach (var file in Directory.GetFiles(savePath, "*.jpg"))
             {
-                hashTable.Add(Sha256HashFile(file));
+                histogramHashTable.Add(GetRGBHistogram(file));
             }
         }
 
@@ -157,8 +167,12 @@ namespace BingWallpaper
             if (!ImageInHash(tempfilename) && !File.Exists(filePath))
             {
                 ConsoleWriter.WriteLine("Found Image For {0}-{1}", xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText);
-                File.Move(tempfilename, filePath);
-                hashTable.Add(Sha256HashFile(filePath));
+                using (var srcImg = Image.FromFile(tempfilename))
+                {
+                    SetTitleOnImage(xmlNode, srcImg);
+                    srcImg.Save(filePath);
+                }
+                histogramHashTable.Add(GetRGBHistogram(filePath));
                 urlsRetrieved.Add(fileurl);
                 return true;
             }
@@ -169,30 +183,65 @@ namespace BingWallpaper
 
         private static bool ImageInHash(string tempfilename)
         {
-            return hashTable.Any(bytes => bytes.SequenceEqual(Sha256HashFile(tempfilename)));
+            return histogramHashTable.Any(ints => ints.SequenceEqual(GetRGBHistogram(tempfilename)));
         }
 
-        private static byte[] Sha256HashFile(string file)
+        private static int[] GetRGBHistogram(string file)
         {
-            using (var sha256 = SHA256.Create())
+            var values = new List<int>();
+            var histogramfile = Path.Combine(hitogramPath, Guid.NewGuid() + ".jpg");
+            File.Copy(file, histogramfile);
+            using(var bmp = new System.Drawing.Bitmap(histogramfile))
             {
-                using (var input = File.OpenRead(file))
-                {
-                    return sha256.ComputeHash(input);
-                }
+                // Luminance
+                var hslStatistics = new ImageStatisticsHSL(bmp);
+                values.AddRange(hslStatistics.Luminance.Values.ToList());
+            
+                // RGB
+                var rgbStatistics = new ImageStatistics(bmp);
+                values.AddRange(rgbStatistics.Red.Values.ToList());
+                values.AddRange(rgbStatistics.Green.Values.ToList());
+                values.AddRange(rgbStatistics.Blue.Values.ToList());
             }
+
+            File.Delete(histogramfile);
+
+            return values.ToArray();
         }
 
         private static string GetFileName(XmlNode xmlNode)
         {
-            var name = xmlNode.SelectSingleNode("copyright").InnerText;
-            if (name.Contains("("))
-            {
-                name = name.Substring(0, name.LastIndexOf("("));
-            }
-            name += ".jpg";
-
+            var name = string.Format("{0}.jpg", xmlNode.SelectSingleNode("urlBase").InnerText.Split('/').Last());
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
+        }
+
+        private static void SetTitleOnImage(XmlNode xmlNode, Image image)
+        {
+            var copyright = xmlNode.SelectSingleNode("copyright").InnerText;
+            var title = copyright;
+            var author = string.Empty;
+            if (copyright.Contains("©"))
+            {
+                var copySymbolPosition = copyright.LastIndexOf("©");
+                title = copyright.Substring(0, copySymbolPosition - 1).Trim();
+                author = copyright.Substring(copySymbolPosition + 1, copyright.LastIndexOf(")") - copySymbolPosition - 1).Trim();
+            }
+
+            SetPropertyItemString(image, ImageMetadataPropertyId.Title, title);
+            SetPropertyItemString(image, ImageMetadataPropertyId.Author, author);
+            SetPropertyItemString(image, ImageMetadataPropertyId.Comment, string.Format("Bing Paper For {0}-{1}", xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText));
+            SetPropertyItemString(image, ImageMetadataPropertyId.Keywords, DateTime.Now.ToShortDateString());
+        }
+
+        private static void SetPropertyItemString(Image srcImg, ImageMetadataPropertyId id, string value)
+        {
+            var buffer = Encoding.Unicode.GetBytes(value);
+            var propItem = srcImg.GetPropertyItem(srcImg.PropertyItems[0].Id);
+            propItem.Id = (int)id;
+            propItem.Type = 1;
+            propItem.Len = buffer.Length;
+            propItem.Value = buffer;
+            srcImg.SetPropertyItem(propItem);
         }
 
         private static XmlNodeList GetImages(int currentIndex, string country)
@@ -222,5 +271,14 @@ namespace BingWallpaper
                 return null;
             }
         }
+    }
+
+    public enum ImageMetadataPropertyId
+    {
+        Title = 40091,
+        Comment = 40092,
+        Author = 40093,
+        Keywords = 40094,
+        Subject = 40095
     }
 }

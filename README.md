@@ -6,6 +6,21 @@ Simple command line application which will retrive the latest set of Bing images
 Images are downloaded from Bing directly at: http://www.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=8&mkt={Culture}
 E.g. http://www.bing.com/HPImageArchive.aspx?format=xml&idx=20&n=8&mkt=en-GB
 
+Bing Countries
+=================
+
+*en-GB - United Kindom
+*en-US - USA
+*en-AU - Australia
+*en-NZ - New Zeland
+*en-CA - Canada
+*de-DE - Germany
+*fr-FR - France
+*zh-CN - China
+*ja-JP - Japan
+
+Please let me know if there are more i've missed!
+
 Usage
 =================
 

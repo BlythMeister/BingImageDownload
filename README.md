@@ -27,3 +27,9 @@ Note
 This application is not affiliated with Bing directly.
 
 I am purely making use of the web endpoint they provide, and accessing the images on the URLs contained in their endpoint.
+
+3rd Party Components
+=================
+
+AForge Imaging: http://www.aforgenet.com/framework/
+(Used for Histogram creation for image duplicate checking)

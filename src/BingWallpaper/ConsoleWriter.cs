@@ -51,6 +51,18 @@ namespace BingWallpaper
             Console.WriteLine(formattedText);
         }
 
+        internal static void WriteLine(int indentation, string text, params Object[] args)
+        {
+            var formattedText = string.Format(text, args);
+            for (var i = 0; i < indentation; i++)
+            {
+                formattedText = string.Format("  {0}", formattedText);
+            }
+
+            WriteToFile(formattedText);
+            Console.WriteLine(formattedText);
+        }
+
         internal static void WriteToFile(string textLine)
         {
             if (logWriter == null)

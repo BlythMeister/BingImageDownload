@@ -41,6 +41,9 @@
     <Reference Include="AForge.Math">
       <HintPath>packages\AForge.Math.2.2.5\lib\AForge.Math.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -52,9 +55,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BingInteractionAndParsing.cs" />
     <Compile Include="ConsoleWriter.cs" />
+    <Compile Include="ImageHashing.cs" />
+    <Compile Include="ImageMetadataPropertyId.cs" />
+    <Compile Include="ImagePropertyHandling.cs" />
+    <Compile Include="Serializer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SetupAndTearDown.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

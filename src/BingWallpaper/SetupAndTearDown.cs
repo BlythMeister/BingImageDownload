@@ -1,6 +1,7 @@
 using System;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using BingWallpaper;
 
 static internal class SetupAndTearDown
@@ -14,22 +15,31 @@ static internal class SetupAndTearDown
 
         var logPath = Path.Combine(Program.savePath, "Logs");
         if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
-
         ConsoleWriter.SetupLogWriter(Path.Combine(logPath, String.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
-        foreach (var file in Directory.GetFiles(logPath))
-        {
-            var fileInfo = new FileInfo(file);
-            if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddDays(-14))
-            {
-                fileInfo.Delete();
-            }
-        }
+
 
         BingInteractionAndParsing.urlsRetrieved.AddRange(Serializer.Deserialize<string>(Path.Combine(Program.appData, "urlsRetrieved.bin")));
-
+        
         foreach (var file in Directory.GetFiles(Program.savePath, "*.jpg"))
         {
             ImageHashing.AddHash(file);
+        }
+
+        foreach (var file in Directory.GetFiles(logPath))
+        {
+            var fileInfo = new FileInfo(file);
+            if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddDays(-28))
+            {
+                try
+                {
+                    fileInfo.Delete();
+                }
+                catch (Exception exception)
+                {
+                    ConsoleWriter.WriteLine("Error clearing a log file", exception);
+                }
+
+            }
         }
     }
 
@@ -37,7 +47,10 @@ static internal class SetupAndTearDown
     {
         if (Directory.Exists(BingInteractionAndParsing.downloadPath)) Directory.Delete(BingInteractionAndParsing.downloadPath, true);
         if (Directory.Exists(ImageHashing.hitogramPath)) Directory.Delete(ImageHashing.hitogramPath, true);
-        Serializer.Serialize(BingInteractionAndParsing.urlsRetrieved, Path.Combine(Program.appData, "urlsRetrieved.bin"));
+        if (BingInteractionAndParsing.urlsRetrieved.Any())
+        {
+            Serializer.Serialize(BingInteractionAndParsing.urlsRetrieved, Path.Combine(Program.appData, "urlsRetrieved.bin"));    
+        }
     }
 
     internal static void ArchiveOldImages()

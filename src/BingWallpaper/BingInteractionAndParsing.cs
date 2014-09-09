@@ -39,14 +39,22 @@ static internal class BingInteractionAndParsing
                     foreach (XmlNode xmlNode in xmlNodeList)
                     {
                         ConsoleWriter.WriteLine(1, "Image for: '{0}' on {1}-{2} using index {3}", country, xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText, currentIndex);
-                        if (DownloadAndSaveImage(xmlNode))
+                        try
                         {
-                            countryImages++;
+                            if (DownloadAndSaveImage(xmlNode))
+                            {
+                                countryImages++;
+                            }
+                            else
+                            {
+                                countryDuplicateImages++;
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            countryDuplicateImages++;
+                            ConsoleWriter.WriteLine("There was an error getting image", ex);
                         }
+                        
                     }
 
                     currentIndex += 1;

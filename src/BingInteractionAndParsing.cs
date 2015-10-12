@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,7 +15,7 @@ static internal class BingInteractionAndParsing
     private const string url = "http://bing.com";
     internal static readonly string downloadPath = Path.Combine(Program.appData, "Temp");
     internal static readonly List<string> urlsRetrieved = new List<string>();
-    internal static readonly string[] countries = ConfigurationManager.AppSettings["Countries"].Split(',');
+    internal static readonly List<CultureInfo> countries = new List<CultureInfo>();
 
     internal static void GetBingImages()
     {
@@ -22,14 +23,14 @@ static internal class BingInteractionAndParsing
 
         foreach (var country in countries)
         {
-            ConsoleWriter.WriteLine("Searching for images for {0}", country);
+            ConsoleWriter.WriteLine("Searching for images for {0} - {1}", country.Name, country.DisplayName);
             var countryImages = 0;
             var countryDuplicateImages = 0;
             var currentIndex = 0;
             var moreImages = true;
             while (moreImages)
             {
-                var xmlNodeList = GetImages(currentIndex, country);
+                var xmlNodeList = GetImages(currentIndex, country.Name);
                 if (xmlNodeList == null)
                 {
                     moreImages = false;
@@ -38,7 +39,8 @@ static internal class BingInteractionAndParsing
                 {
                     foreach (XmlNode xmlNode in xmlNodeList)
                     {
-                        ConsoleWriter.WriteLine(1, "Image for: '{0}' on {1}-{2} using index {3}", country, xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText, currentIndex);
+                        var imageUrl = string.Format("{0}{1}_1920x1080.jpg", url, xmlNode.SelectSingleNode("urlBase").InnerText);
+                        ConsoleWriter.WriteLine(1, "Image for: '{0}' on {1}-{2} index {3} was: {4}", country.Name, xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText, currentIndex, imageUrl);
                         try
                         {
                             if (DownloadAndSaveImage(xmlNode))
@@ -62,8 +64,8 @@ static internal class BingInteractionAndParsing
             }
 
             downloadedImages += countryImages;
-            ConsoleWriter.WriteLine("Found {0} new images for {1}", countryImages, country);
-            ConsoleWriter.WriteLine("Found {0} duplicate images for {1}", countryDuplicateImages, country);
+            ConsoleWriter.WriteLine("Found {0} new images for {1}", countryImages, country.Name);
+            ConsoleWriter.WriteLine("Found {0} duplicate images for {1}", countryDuplicateImages, country.Name);
             ConsoleWriter.WriteLine("");
         }
 
@@ -72,7 +74,7 @@ static internal class BingInteractionAndParsing
 
     internal static bool DownloadAndSaveImage(XmlNode xmlNode)
     {
-        var fileurl = String.Format("{0}{1}_1920x1080.jpg", url, xmlNode.SelectSingleNode("urlBase").InnerText);
+        var fileurl = string.Format("{0}{1}_1920x1080.jpg", url, xmlNode.SelectSingleNode("urlBase").InnerText);
         if (urlsRetrieved.Contains(fileurl))
         {
             ConsoleWriter.WriteLine(2, "Already Dowloaded Image URL");

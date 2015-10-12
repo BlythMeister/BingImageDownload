@@ -1,5 +1,6 @@
 using System;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using BingWallpaper;
@@ -16,15 +17,25 @@ static internal class SetupAndTearDown
         var logPath = Path.Combine(Program.savePath, "Logs");
         if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
         ConsoleWriter.SetupLogWriter(Path.Combine(logPath, String.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
-
-
-        BingInteractionAndParsing.urlsRetrieved.AddRange(Serializer.Deserialize<string>(Path.Combine(Program.appData, "urlsRetrieved.bin")));
         
+        BingInteractionAndParsing.urlsRetrieved.AddRange(Serializer.Deserialize<string>(Path.Combine(Program.appData, "urlsRetrieved.bin")));
+        BingInteractionAndParsing.countries.AddRange(CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x=>x.Name.Contains("-") && x.Name.Length == 5));
+
         foreach (var file in Directory.GetFiles(Program.savePath, "*.jpg"))
         {
             ImageHashing.AddHash(file);
         }
 
+        var preventArchiveDupes = bool.Parse(ConfigurationManager.AppSettings["PreventDuplicatesInArchive"]);
+        if (preventArchiveDupes)
+        {
+            var archivePath = Path.Combine(Program.savePath, "Archive");
+            if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
+            foreach (var file in Directory.GetFiles(archivePath, "*.jpg"))
+            {
+                ImageHashing.AddHash(file);
+            }
+        }
         foreach (var file in Directory.GetFiles(logPath))
         {
             var fileInfo = new FileInfo(file);

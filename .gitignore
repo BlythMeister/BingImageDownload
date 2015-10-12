@@ -8,7 +8,7 @@
 *.log 
 *.DS_Store
 [Tt]humbs.db 
-_ReSharper.*
+_ReSharper*
 *.pdb
 *.scc
 *.vspscc
@@ -39,3 +39,4 @@ NugetFeed/
 Packages/
 _TeamCity.*
 TestResults.xml
+.vs/

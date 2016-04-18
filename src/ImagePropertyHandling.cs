@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Drawing;
 using System.Text;
 using System.Xml;
@@ -10,12 +10,20 @@ static internal class ImagePropertyHandling
     {
         var copyright = xmlNode.SelectSingleNode("copyright").InnerText;
         var title = copyright;
-        var author = String.Empty;
-        if (copyright.Contains("©"))
+        var author = string.Empty;
+        if (copyright.Contains("Â©"))
         {
-            var copySymbolPosition = copyright.LastIndexOf("©");
+            var copySymbolPosition = copyright.LastIndexOf("Â©");
             title = copyright.Substring(0, copySymbolPosition - 1).Trim();
-            author = copyright.Substring(copySymbolPosition + 1, copyright.LastIndexOf(")") - copySymbolPosition - 1).Trim();
+            var endOfCopyright = copyright.LastIndexOf(")") - copySymbolPosition - 1;
+            if (endOfCopyright == -1)
+            {
+                author = copyright.Substring(copySymbolPosition + 1).Trim();
+            }
+            else
+            {
+                author = copyright.Substring(copySymbolPosition + 1, endOfCopyright).Trim();
+            }
         }
 
         SetPropertyItemString(image, ImageMetadataPropertyId.Title, title);

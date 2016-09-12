@@ -22,12 +22,11 @@ namespace BingWallpaper
 
             BingInteractionAndParsing.UrlsRetrieved.AddRange(Serializer.Deserialize<List<string>>(Path.Combine(Program.AppData, "urlsRetrieved.bin")));
             BingInteractionAndParsing.Countries.AddRange(CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-") && x.Name.Length == 5));
+            ImageHashing.HistogramHashTable.AddRange(Serializer.Deserialize<List<HistogramHash>>(Path.Combine(Program.AppData, "imageHistogram.bin")));
 
-            var savedHistograms = Serializer.Deserialize<Dictionary<string, int[]>>(Path.Combine(Program.AppData, "imageHistogram.bin"));
-            foreach (var savedHistogram in savedHistograms)
-            {
-                ImageHashing.HistogramHashTable.Add(savedHistogram.Key, savedHistogram.Value);
-            }
+            ConsoleWriter.WriteLine("Have loaded {0} previous URLs", BingInteractionAndParsing.UrlsRetrieved.Count);
+            ConsoleWriter.WriteLine("Have loaded {0} countries", BingInteractionAndParsing.Countries.Count);
+            ConsoleWriter.WriteLine("Have loaded {0} previous hashes", ImageHashing.HistogramHashTable.Count);
 
             HashExistingImages();
 
@@ -40,6 +39,7 @@ namespace BingWallpaper
             {
                 foreach (var file in Directory.GetFiles(Program.SavePath, "*.jpg"))
                 {
+                    ConsoleWriter.WriteLine("Hashing file: {0}", file);
                     ImageHashing.AddHash(file);
                 }
 
@@ -50,6 +50,7 @@ namespace BingWallpaper
                     if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
                     foreach (var file in Directory.GetFiles(archivePath, "*.jpg"))
                     {
+                        ConsoleWriter.WriteLine("Hashing file: {0}", file);
                         ImageHashing.AddHash(file);
                     }
                 }
@@ -66,6 +67,8 @@ namespace BingWallpaper
                     throw;
                 }
             }
+
+            ConsoleWriter.WriteLine("Now have {0} hashed images", ImageHashing.HistogramHashTable.Count);
         }
 
         private static void ClearLogFiles(string logPath)

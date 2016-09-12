@@ -8,22 +8,23 @@ namespace BingWallpaper
 {
     internal static class ImageHashing
     {
-        internal static readonly Dictionary<string, int[]> HistogramHashTable = new Dictionary<string, int[]>();
+        internal static readonly List<HistogramHash> HistogramHashTable = new List<HistogramHash>();
         internal static readonly string HitogramPath = Path.Combine(Program.AppData, "TempHistogram");
 
         internal static bool ImageInHash(string tempfilename)
         {
-            return HistogramHashTable.Values.Any(ints => ints.SequenceEqual(GetRGBHistogram(tempfilename)));
+            var testHash = GetRGBHistogram(tempfilename);
+            return HistogramHashTable.Any(hash => hash.Equal(testHash));
         }
 
         internal static void AddHash(string filePath)
         {
-            if(HistogramHashTable.ContainsKey(filePath)) return;
+            if(HistogramHashTable.Any(x=>x.filePath == filePath)) return;
 
-            HistogramHashTable.Add(filePath, GetRGBHistogram(filePath));
+            HistogramHashTable.Add(GetRGBHistogram(filePath));
         }
 
-        internal static int[] GetRGBHistogram(string file)
+        internal static HistogramHash GetRGBHistogram(string file)
         {
             var values = new List<int>();
             var histogramfile = Path.Combine(HitogramPath, Guid.NewGuid() + ".jpg");
@@ -43,7 +44,24 @@ namespace BingWallpaper
 
             File.Delete(histogramfile);
 
-            return values.ToArray();
+            return new HistogramHash(file, values);
+        }
+    }
+
+    internal class HistogramHash
+    {
+        internal readonly string filePath;
+        internal readonly int[] HashValue;
+
+        public HistogramHash(string filePath, List<int> values)
+        {
+            this.filePath = filePath;
+            HashValue = values.ToArray();
+        }
+
+        public bool Equal(HistogramHash other)
+        {
+            return HashValue.SequenceEqual(other.HashValue);
         }
     }
 }

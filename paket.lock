@@ -1,0 +1,10 @@
+FRAMEWORK: >= NET45
+NUGET
+  remote: http://api.nuget.org/v3/index.json
+    AForge (2.2.5)
+    AForge.Imaging (2.2.5)
+      AForge (>= 2.2.5)
+      AForge.Math (>= 2.2.5)
+    AForge.Math (2.2.5)
+      AForge (>= 2.2.5)
+    Newtonsoft.Json (8.0.3)

@@ -7,7 +7,7 @@ namespace BingWallpaper
     internal static class ConsoleWriter
     {
         private static readonly StringBuilder TempBuilder = new StringBuilder();
-        private static readonly Object LockThis = new Object();
+        private static readonly object LockThis = new object();
         private static StreamWriter logWriter;
         internal static bool HaveWrittenExeption;
 
@@ -25,7 +25,7 @@ namespace BingWallpaper
 
         private static void WriteException(string text, Exception exception, int calls)
         {
-            var formattedText = calls > 1 ? string.Format("Inner Exception - {0}", exception.Message) : string.Format("{0} - {1}", text, exception.Message);
+            var formattedText = calls > 1 ? $"Inner Exception - {exception.Message}" : $"{text} - {exception.Message}";
             WriteToFile(formattedText);
             WriteToFile(exception.StackTrace);
 
@@ -56,7 +56,7 @@ namespace BingWallpaper
             var formattedText = string.Format(text, args);
             for (var i = 0; i < indentation; i++)
             {
-                formattedText = string.Format("  {0}", formattedText);
+                formattedText = $"  {formattedText}";
             }
 
             WriteToFile(formattedText);
@@ -100,7 +100,7 @@ namespace BingWallpaper
         {
             lock (LockThis)
             {
-                logWriter.WriteLine("{0} - {1}", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm"), text);
+                logWriter.WriteLine("{0:yyyy-MM-dd HH:mm} - {1}", DateTime.UtcNow, text);
             }
         }
 

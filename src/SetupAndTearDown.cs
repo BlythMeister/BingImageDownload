@@ -1,83 +1,129 @@
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using BingWallpaper;
 
-static internal class SetupAndTearDown
+namespace BingWallpaper
 {
-    internal static void Startup()
+    internal static class SetupAndTearDown
     {
-        if (!Directory.Exists(Program.savePath)) Directory.CreateDirectory(Program.savePath);
-        if (!Directory.Exists(Program.appData)) Directory.CreateDirectory(Program.appData);
-        if (!Directory.Exists(BingInteractionAndParsing.downloadPath)) Directory.CreateDirectory(BingInteractionAndParsing.downloadPath);
-        if (!Directory.Exists(ImageHashing.hitogramPath)) Directory.CreateDirectory(ImageHashing.hitogramPath);
-
-        var logPath = Path.Combine(Program.savePath, "Logs");
-        if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
-        ConsoleWriter.SetupLogWriter(Path.Combine(logPath, String.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
-        
-        BingInteractionAndParsing.urlsRetrieved.AddRange(Serializer.Deserialize<string>(Path.Combine(Program.appData, "urlsRetrieved.bin")));
-        BingInteractionAndParsing.countries.AddRange(CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x=>x.Name.Contains("-") && x.Name.Length == 5));
-
-        foreach (var file in Directory.GetFiles(Program.savePath, "*.jpg"))
+        internal static void Startup()
         {
-            ImageHashing.AddHash(file);
-        }
+            if (!Directory.Exists(Program.SavePath)) Directory.CreateDirectory(Program.SavePath);
+            if (!Directory.Exists(Program.AppData)) Directory.CreateDirectory(Program.AppData);
+            if (!Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.CreateDirectory(BingInteractionAndParsing.DownloadPath);
+            if (!Directory.Exists(ImageHashing.HitogramPath)) Directory.CreateDirectory(ImageHashing.HitogramPath);
 
-        var preventArchiveDupes = bool.Parse(ConfigurationManager.AppSettings["PreventDuplicatesInArchive"]);
-        if (preventArchiveDupes)
-        {
-            var archivePath = Path.Combine(Program.savePath, "Archive");
-            if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
-            foreach (var file in Directory.GetFiles(archivePath, "*.jpg"))
+            var logPath = Path.Combine(Program.SavePath, "Logs");
+            if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
+            ConsoleWriter.SetupLogWriter(Path.Combine(logPath, String.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
+
+            BingInteractionAndParsing.UrlsRetrieved.AddRange(Serializer.Deserialize<List<string>>(Path.Combine(Program.AppData, "urlsRetrieved.bin")));
+            BingInteractionAndParsing.Countries.AddRange(CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-") && x.Name.Length == 5));
+
+            var savedHistograms = Serializer.Deserialize<Dictionary<string, int[]>>(Path.Combine(Program.AppData, "imageHistogram.bin"));
+            foreach (var savedHistogram in savedHistograms)
             {
-                ImageHashing.AddHash(file);
+                ImageHashing.HistogramHashTable.Add(savedHistogram.Key, savedHistogram.Value);
             }
+
+            HashExistingImages();
+
+            ClearLogFiles(logPath);
         }
-        foreach (var file in Directory.GetFiles(logPath))
+
+        private static void HashExistingImages(int retryCount = 0)
         {
-            var fileInfo = new FileInfo(file);
-            if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddDays(-28))
+            try
             {
-                try
+                foreach (var file in Directory.GetFiles(Program.SavePath, "*.jpg"))
                 {
-                    fileInfo.Delete();
-                }
-                catch (Exception exception)
-                {
-                    ConsoleWriter.WriteLine("Error clearing a log file", exception);
+                    ImageHashing.AddHash(file);
                 }
 
+                var preventArchiveDupes = bool.Parse(ConfigurationManager.AppSettings["PreventDuplicatesInArchive"]);
+                if (preventArchiveDupes)
+                {
+                    var archivePath = Path.Combine(Program.SavePath, "Archive");
+                    if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
+                    foreach (var file in Directory.GetFiles(archivePath, "*.jpg"))
+                    {
+                        ImageHashing.AddHash(file);
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
+                if (retryCount < 5)
+                {
+                    HashExistingImages(retryCount + 1);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
-    }
 
-    internal static void Finish()
-    {
-        if (Directory.Exists(BingInteractionAndParsing.downloadPath)) Directory.Delete(BingInteractionAndParsing.downloadPath, true);
-        if (Directory.Exists(ImageHashing.hitogramPath)) Directory.Delete(ImageHashing.hitogramPath, true);
-        if (BingInteractionAndParsing.urlsRetrieved.Any())
+        private static void ClearLogFiles(string logPath)
         {
-            Serializer.Serialize(BingInteractionAndParsing.urlsRetrieved, Path.Combine(Program.appData, "urlsRetrieved.bin"));    
-        }
-    }
-
-    internal static void ArchiveOldImages()
-    {
-        var archiveMonths = int.Parse(ConfigurationManager.AppSettings["ArchiveAfterMonths"]);
-        var archivePath = Path.Combine(Program.savePath, "Archive");
-
-        if (archiveMonths <= 0) return;
-
-        foreach (var file in Directory.GetFiles(Program.savePath))
-        {
-            var fileInfo = new FileInfo(file);
-            if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddMonths(archiveMonths * -1))
+            foreach (var file in Directory.GetFiles(logPath))
             {
-                if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
-                fileInfo.MoveTo(Path.Combine(archivePath, fileInfo.Name));
+                var fileInfo = new FileInfo(file);
+                if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddDays(-28))
+                {
+                    try
+                    {
+                        fileInfo.Delete();
+                    }
+                    catch (Exception exception)
+                    {
+                        ConsoleWriter.WriteLine("Error clearing a log file", exception);
+                    }
+
+                }
+            }
+        }
+
+        internal static void Finish()
+        {
+            if (Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.Delete(BingInteractionAndParsing.DownloadPath, true);
+            if (Directory.Exists(ImageHashing.HitogramPath)) Directory.Delete(ImageHashing.HitogramPath, true);
+            if (BingInteractionAndParsing.UrlsRetrieved.Any())
+            {
+                Serializer.Serialize(BingInteractionAndParsing.UrlsRetrieved, Path.Combine(Program.AppData, "urlsRetrieved.bin"));
+            }
+            if (ImageHashing.HistogramHashTable.Any())
+            {
+                Serializer.Serialize(ImageHashing.HistogramHashTable, Path.Combine(Program.AppData, "imageHistogram.bin"));
+            }
+        }
+
+        internal static void ArchiveOldImages()
+        {
+            try
+            {
+                var archiveMonths = int.Parse(ConfigurationManager.AppSettings["ArchiveAfterMonths"]);
+                var archivePath = Path.Combine(Program.SavePath, "Archive");
+
+                if (archiveMonths <= 0) return;
+
+                foreach (var file in Directory.GetFiles(Program.SavePath))
+                {
+                    var fileInfo = new FileInfo(file);
+                    if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddMonths(archiveMonths * -1))
+                    {
+                        if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
+                        fileInfo.MoveTo(Path.Combine(archivePath, fileInfo.Name));
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
             }
         }
     }

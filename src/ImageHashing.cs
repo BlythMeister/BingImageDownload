@@ -19,7 +19,7 @@ namespace BingWallpaper
 
         internal static void AddHash(string filePath)
         {
-            if(HistogramHashTable.Any(x=>x.filePath == filePath)) return;
+            if(HistogramHashTable.Any(x=>x.FilePath == filePath)) return;
 
             HistogramHashTable.Add(GetRGBHistogram(filePath));
         }
@@ -44,24 +44,7 @@ namespace BingWallpaper
 
             File.Delete(histogramfile);
 
-            return new HistogramHash(file, values);
-        }
-    }
-
-    internal class HistogramHash
-    {
-        internal readonly string filePath;
-        internal readonly int[] HashValue;
-
-        public HistogramHash(string filePath, List<int> values)
-        {
-            this.filePath = filePath;
-            HashValue = values.ToArray();
-        }
-
-        public bool Equal(HistogramHash other)
-        {
-            return HashValue.SequenceEqual(other.HashValue);
+            return new HistogramHash(file, values.ToArray());
         }
     }
 }

@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="BingInteractionAndParsing.cs" />
     <Compile Include="ConsoleWriter.cs" />
+    <Compile Include="HistogramHash.cs" />
     <Compile Include="ImageHashing.cs" />
     <Compile Include="ImageMetadataPropertyId.cs" />
     <Compile Include="ImagePropertyHandling.cs" />

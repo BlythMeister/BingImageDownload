@@ -29,6 +29,11 @@ namespace BingWallpaper
             ConsoleWriter.WriteLine("Have loaded {0} previous hashes", ImageHashing.HistogramHashTable.Count);
 
             HashExistingImages();
+            
+            if (ImageHashing.HistogramHashTable.Any())
+            {
+                Serializer.Serialize(ImageHashing.HistogramHashTable, Path.Combine(Program.AppData, "imageHistogram.bin"));
+            }
 
             ClearLogFiles(logPath);
         }

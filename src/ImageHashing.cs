@@ -17,14 +17,26 @@ namespace BingWallpaper
             return HistogramHashTable.Any(hash => hash.Equal(testHash));
         }
 
+        internal static bool HaveFilePathInHashTable(string filePath)
+        {
+            return HistogramHashTable.Any(x => x.FilePath == filePath);
+        }
+
         internal static void AddHash(string filePath)
         {
-            if(HistogramHashTable.Any(x=>x.FilePath == filePath)) return;
+            if(HaveFilePathInHashTable(filePath)) return;
 
             HistogramHashTable.Add(GetRGBHistogram(filePath));
         }
 
-        internal static HistogramHash GetRGBHistogram(string file)
+        internal static void ClearHash()
+        {
+            HistogramHashTable.RemoveAll(x => string.IsNullOrWhiteSpace(x.FilePath));
+            HistogramHashTable.RemoveAll(x => !File.Exists(x.FilePath));
+            HistogramHashTable.RemoveAll(x => x.HashValue == null || !x.HashValue.Any());
+        }
+
+        private static HistogramHash GetRGBHistogram(string file)
         {
             var values = new List<int>();
             var histogramfile = Path.Combine(HitogramPath, Guid.NewGuid() + ".jpg");
@@ -44,7 +56,7 @@ namespace BingWallpaper
 
             File.Delete(histogramfile);
 
-            return new HistogramHash(file, values.ToArray());
+            return new HistogramHash(file, values);
         }
     }
 }

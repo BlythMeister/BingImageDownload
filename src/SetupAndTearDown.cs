@@ -28,8 +28,11 @@ namespace BingWallpaper
             ConsoleWriter.WriteLine("Have loaded {0} countries", BingInteractionAndParsing.Countries.Count);
             ConsoleWriter.WriteLine("Have loaded {0} previous hashes", ImageHashing.HistogramHashTable.Count);
 
+            ArchiveOldImages();
+
+            ImageHashing.ClearHash();
             HashExistingImages();
-            
+
             if (ImageHashing.HistogramHashTable.Any())
             {
                 Serializer.Serialize(ImageHashing.HistogramHashTable, Path.Combine(Program.AppData, "imageHistogram.bin"));
@@ -42,7 +45,7 @@ namespace BingWallpaper
         {
             try
             {
-                foreach (var file in Directory.GetFiles(Program.SavePath, "*.jpg"))
+                foreach (var file in Directory.GetFiles(Program.SavePath, "*.jpg").Where(x => !ImageHashing.HaveFilePathInHashTable(x)))
                 {
                     ConsoleWriter.WriteLine("Hashing file: {0}", file);
                     ImageHashing.AddHash(file);
@@ -53,7 +56,7 @@ namespace BingWallpaper
                 {
                     var archivePath = Path.Combine(Program.SavePath, "Archive");
                     if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
-                    foreach (var file in Directory.GetFiles(archivePath, "*.jpg"))
+                    foreach (var file in Directory.GetFiles(archivePath, "*.jpg").Where(x => !ImageHashing.HaveFilePathInHashTable(x)))
                     {
                         ConsoleWriter.WriteLine("Hashing file: {0}", file);
                         ImageHashing.AddHash(file);
@@ -98,12 +101,21 @@ namespace BingWallpaper
 
         internal static void Finish()
         {
-            if (Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.Delete(BingInteractionAndParsing.DownloadPath, true);
-            if (Directory.Exists(ImageHashing.HitogramPath)) Directory.Delete(ImageHashing.HitogramPath, true);
+            try
+            {
+                if (Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.Delete(BingInteractionAndParsing.DownloadPath, true);
+                if (Directory.Exists(ImageHashing.HitogramPath)) Directory.Delete(ImageHashing.HitogramPath, true);
+            }
+            catch (Exception exception)
+            {
+                ConsoleWriter.WriteLine("Error cleaning up", exception);
+            }
+
             if (BingInteractionAndParsing.UrlsRetrieved.Any())
             {
                 Serializer.Serialize(BingInteractionAndParsing.UrlsRetrieved, Path.Combine(Program.AppData, "urlsRetrieved.bin"));
             }
+
             if (ImageHashing.HistogramHashTable.Any())
             {
                 Serializer.Serialize(ImageHashing.HistogramHashTable, Path.Combine(Program.AppData, "imageHistogram.bin"));
@@ -122,7 +134,7 @@ namespace BingWallpaper
                 foreach (var file in Directory.GetFiles(Program.SavePath))
                 {
                     var fileInfo = new FileInfo(file);
-                    if (fileInfo.LastAccessTimeUtc < DateTime.UtcNow.AddMonths(archiveMonths * -1))
+                    if (fileInfo.CreationTimeUtc < DateTime.UtcNow.AddMonths(archiveMonths * -1))
                     {
                         if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
                         fileInfo.MoveTo(Path.Combine(archivePath, fileInfo.Name));

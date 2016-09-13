@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.Threading;
 
 namespace BingWallpaper
 {
@@ -14,7 +15,6 @@ namespace BingWallpaper
             try
             {
                 SetupAndTearDown.Startup();
-                SetupAndTearDown.ArchiveOldImages();
                 BingInteractionAndParsing.GetBingImages();
             }
             catch (Exception e)
@@ -24,6 +24,7 @@ namespace BingWallpaper
             }
             finally
             {
+                Thread.Sleep(TimeSpan.FromSeconds(30));
                 SetupAndTearDown.Finish();
             }
         }

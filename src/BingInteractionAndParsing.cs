@@ -28,6 +28,8 @@ namespace BingWallpaper
                 var countryDuplicateImages = 0;
                 var currentIndex = 0;
                 var moreImages = true;
+                var startDate = string.Empty;
+                var endDate = string.Empty;
                 while (moreImages)
                 {
                     var xmlNodeList = GetImages(currentIndex, country.Name);
@@ -39,8 +41,19 @@ namespace BingWallpaper
                     {
                         foreach (XmlNode xmlNode in xmlNodeList)
                         {
+                            var nodeStartDate = xmlNode.SelectSingleNode("startdate").InnerText;
+                            var nodeEndDate = xmlNode.SelectSingleNode("enddate").InnerText;
+
+                            if (startDate == nodeStartDate && endDate == nodeEndDate)
+                            {
+                                moreImages = false;
+                                break;
+                            }
+
+                            startDate = nodeStartDate;
+                            endDate = nodeEndDate;
                             var imageUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase").InnerText}_1920x1080.jpg";
-                            ConsoleWriter.WriteLine(1, "Image for: '{0}' on {1}-{2} index {3} was: {4}", country.Name, xmlNode.SelectSingleNode("startdate").InnerText, xmlNode.SelectSingleNode("enddate").InnerText, currentIndex, imageUrl);
+                            ConsoleWriter.WriteLine(1, "Image for: '{0}' on {1}-{2} index {3} was: {4}", country.Name, startDate, endDate, currentIndex, imageUrl);
                             try
                             {
                                 if (DownloadAndSaveImage(xmlNode))
@@ -56,7 +69,6 @@ namespace BingWallpaper
                             {
                                 ConsoleWriter.WriteLine("There was an error getting image", ex);
                             }
-                        
                         }
 
                         currentIndex += 1;
@@ -104,7 +116,7 @@ namespace BingWallpaper
             }
 
             ConsoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
-            
+
             var newImage = false;
             if (!ImageHashing.ImageInHash(tempfilename) && !File.Exists(filePath))
             {

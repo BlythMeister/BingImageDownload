@@ -21,6 +21,11 @@ Bing Countries
 
 Please let me know if there are more i've missed!
 
+On Your Mobile
+=================
+
+Automate flow http://llamalab.com/automate/community/flows/21377 will update your phone daily
+
 Usage
 =================
 

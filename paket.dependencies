@@ -1,5 +1,5 @@
 source https://api.nuget.org/v3/index.json
-framework >= net45
+framework auto-detect
 
 nuget AForge
 nuget AForge.Imaging

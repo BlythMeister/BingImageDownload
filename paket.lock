@@ -1,10 +1,10 @@
-FRAMEWORK: >= NET45
+RESTRICTION: == net471
 NUGET
-  remote: http://api.nuget.org/v3/index.json
+  remote: https://api.nuget.org/v3/index.json
     AForge (2.2.5)
     AForge.Imaging (2.2.5)
       AForge (>= 2.2.5)
       AForge.Math (>= 2.2.5)
     AForge.Math (2.2.5)
       AForge (>= 2.2.5)
-    Newtonsoft.Json (9.0.1)
+    Newtonsoft.Json (11.0.2)

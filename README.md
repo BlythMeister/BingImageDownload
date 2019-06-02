@@ -9,17 +9,9 @@ E.g. http://www.bing.com/HPImageArchive.aspx?format=xml&idx=20&n=8&mkt=en-GB
 Bing Countries
 =================
 
-*en-GB - United Kindom
-*en-US - USA
-*en-AU - Australia
-*en-NZ - New Zeland
-*en-CA - Canada
-*de-DE - Germany
-*fr-FR - France
-*zh-CN - China
-*ja-JP - Japan
+The app will attempt to use every known culture code to get images.
 
-Please let me know if there are more i've missed!
+This does result in a lot of duplicate URLs, but the app is also designed to prevent this causing issues!
 
 On Your Mobile
 =================

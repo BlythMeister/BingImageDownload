@@ -9,8 +9,8 @@ namespace BingWallpaper
     {
         internal static readonly string SavePath = ConfigurationManager.AppSettings["ImageSavePath"];
         internal static readonly string AppData = Path.Combine(SavePath, "App_Data");
-        
-        private static void Main(string[] args)
+
+        private static void Main()
         {
             try
             {
@@ -19,7 +19,7 @@ namespace BingWallpaper
             }
             catch (Exception e)
             {
-                ConsoleWriter.WriteLine("Error: {0}", e.Message);
+                ConsoleWriter.WriteLine("Unhandled Error", e);
                 throw;
             }
             finally

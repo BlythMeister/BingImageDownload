@@ -18,15 +18,15 @@ namespace BingWallpaper
 
             var logPath = Path.Combine(Program.SavePath, "Logs");
             if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
-            ConsoleWriter.SetupLogWriter(Path.Combine(logPath, String.Format("Log-{0}.txt", DateTime.UtcNow.ToString("yyyy-MM-dd"))));
+            ConsoleWriter.SetupLogWriter(Path.Combine(logPath, $"Log-{DateTime.UtcNow:yyyy-MM-dd}.txt"));
 
             BingInteractionAndParsing.UrlsRetrieved.AddRange(Serializer.Deserialize<List<string>>(Path.Combine(Program.AppData, "urlsRetrieved.bin")));
-            BingInteractionAndParsing.Countries.AddRange(CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-") && x.Name.Length == 5));
+            BingInteractionAndParsing.Countries.AddRange(CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-")));
             ImageHashing.HistogramHashTable.AddRange(Serializer.Deserialize<List<HistogramHash>>(Path.Combine(Program.AppData, "imageHistogram.bin")));
 
-            ConsoleWriter.WriteLine("Have loaded {0} previous URLs", BingInteractionAndParsing.UrlsRetrieved.Count);
-            ConsoleWriter.WriteLine("Have loaded {0} countries", BingInteractionAndParsing.Countries.Count);
-            ConsoleWriter.WriteLine("Have loaded {0} previous hashes", ImageHashing.HistogramHashTable.Count);
+            ConsoleWriter.WriteLine($"Have loaded {BingInteractionAndParsing.UrlsRetrieved.Count} previous URLs");
+            ConsoleWriter.WriteLine($"Have loaded {BingInteractionAndParsing.Countries.Count} countries");
+            ConsoleWriter.WriteLine($"Have loaded {ImageHashing.HistogramHashTable.Count} previous hashes");
 
             ArchiveOldImages();
 
@@ -47,7 +47,7 @@ namespace BingWallpaper
             {
                 foreach (var file in Directory.GetFiles(Program.SavePath, "*.jpg").Where(x => !ImageHashing.HaveFilePathInHashTable(x)))
                 {
-                    ConsoleWriter.WriteLine("Hashing file: {0}", file);
+                    ConsoleWriter.WriteLine($"Hashing file: {file}");
                     ImageHashing.AddHash(file);
                 }
 
@@ -58,11 +58,10 @@ namespace BingWallpaper
                     if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
                     foreach (var file in Directory.GetFiles(archivePath, "*.jpg").Where(x => !ImageHashing.HaveFilePathInHashTable(x)))
                     {
-                        ConsoleWriter.WriteLine("Hashing file: {0}", file);
+                        ConsoleWriter.WriteLine($"Hashing file: {file}");
                         ImageHashing.AddHash(file);
                     }
                 }
-
             }
             catch (Exception)
             {
@@ -76,7 +75,7 @@ namespace BingWallpaper
                 }
             }
 
-            ConsoleWriter.WriteLine("Now have {0} hashed images", ImageHashing.HistogramHashTable.Count);
+            ConsoleWriter.WriteLine($"Now have {ImageHashing.HistogramHashTable.Count} hashed images");
         }
 
         private static void ClearLogFiles(string logPath)
@@ -94,7 +93,6 @@ namespace BingWallpaper
                     {
                         ConsoleWriter.WriteLine("Error clearing a log file", exception);
                     }
-
                 }
             }
         }

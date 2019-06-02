@@ -1,8 +1,8 @@
+using AForge.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AForge.Imaging;
 
 namespace BingWallpaper
 {
@@ -13,7 +13,7 @@ namespace BingWallpaper
 
         internal static bool ImageInHash(string tempfilename)
         {
-            var testHash = GetRGBHistogram(tempfilename);
+            var testHash = GetRgbHistogram(tempfilename);
             return HistogramHashTable.Any(hash => hash.Equal(testHash));
         }
 
@@ -24,9 +24,9 @@ namespace BingWallpaper
 
         internal static void AddHash(string filePath)
         {
-            if(HaveFilePathInHashTable(filePath)) return;
+            if (HaveFilePathInHashTable(filePath)) return;
 
-            HistogramHashTable.Add(GetRGBHistogram(filePath));
+            HistogramHashTable.Add(GetRgbHistogram(filePath));
         }
 
         internal static void ClearHash()
@@ -36,7 +36,7 @@ namespace BingWallpaper
             HistogramHashTable.RemoveAll(x => x.HashValue == null || !x.HashValue.Any());
         }
 
-        private static HistogramHash GetRGBHistogram(string file)
+        private static HistogramHash GetRgbHistogram(string file)
         {
             var values = new List<int>();
             var histogramfile = Path.Combine(HitogramPath, Guid.NewGuid() + ".jpg");

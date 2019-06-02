@@ -23,7 +23,7 @@ namespace BingWallpaper
 
             foreach (var country in Countries)
             {
-                ConsoleWriter.WriteLine("Searching for images for {0} - {1}", country.Name, country.DisplayName);
+                ConsoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
                 var countryImages = 0;
                 var countryDuplicateImages = 0;
                 var currentIndex = 0;
@@ -32,7 +32,18 @@ namespace BingWallpaper
                 var endDate = string.Empty;
                 while (moreImages)
                 {
-                    var xmlNodeList = GetImages(currentIndex, country.Name);
+                    XmlNodeList xmlNodeList;
+
+                    try
+                    {
+                        xmlNodeList = GetImages(currentIndex, country.Name);
+                    }
+                    catch (Exception e)
+                    {
+                        ConsoleWriter.WriteLine($"Error getting images for {country.Name} - {country.DisplayName}", e);
+                        continue;
+                    }
+
                     if (xmlNodeList == null)
                     {
                         moreImages = false;
@@ -41,8 +52,8 @@ namespace BingWallpaper
                     {
                         foreach (XmlNode xmlNode in xmlNodeList)
                         {
-                            var nodeStartDate = xmlNode.SelectSingleNode("startdate").InnerText;
-                            var nodeEndDate = xmlNode.SelectSingleNode("enddate").InnerText;
+                            var nodeStartDate = xmlNode.SelectSingleNode("startdate")?.InnerText;
+                            var nodeEndDate = xmlNode.SelectSingleNode("enddate")?.InnerText;
 
                             if (startDate == nodeStartDate && endDate == nodeEndDate)
                             {
@@ -52,8 +63,8 @@ namespace BingWallpaper
 
                             startDate = nodeStartDate;
                             endDate = nodeEndDate;
-                            var imageUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase").InnerText}_1920x1080.jpg";
-                            ConsoleWriter.WriteLine(1, "Image for: '{0}' on {1}-{2} index {3} was: {4}", country.Name, startDate, endDate, currentIndex, imageUrl);
+                            var imageUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
+                            ConsoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} index {currentIndex} was: {imageUrl}");
                             try
                             {
                                 if (DownloadAndSaveImage(xmlNode))
@@ -76,17 +87,17 @@ namespace BingWallpaper
                 }
 
                 downloadedImages += countryImages;
-                ConsoleWriter.WriteLine("Found {0} new images for {1}", countryImages, country.Name);
-                ConsoleWriter.WriteLine("Found {0} duplicate images for {1}", countryDuplicateImages, country.Name);
+                ConsoleWriter.WriteLine($"Found {countryImages} new images for {country.Name}");
+                ConsoleWriter.WriteLine($"Found {countryDuplicateImages} duplicate images for {country.Name}");
                 ConsoleWriter.WriteLine("");
             }
 
-            ConsoleWriter.WriteLine("Found {0} new images", downloadedImages);
+            ConsoleWriter.WriteLine($"Found {downloadedImages} new images");
         }
 
         internal static bool DownloadAndSaveImage(XmlNode xmlNode)
         {
-            var fileurl = string.Format("{0}{1}_1920x1080.jpg", Url, xmlNode.SelectSingleNode("urlBase").InnerText);
+            var fileurl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
             if (UrlsRetrieved.Contains(fileurl))
             {
                 ConsoleWriter.WriteLine(2, "Already Dowloaded Image URL");
@@ -94,23 +105,25 @@ namespace BingWallpaper
             }
 
             var filePath = Path.Combine(Program.SavePath, GetFileName(xmlNode));
-            var tempfilename = Path.Combine(DownloadPath, Guid.NewGuid() + ".jpg");
+            var tempFilename = Path.Combine(DownloadPath, Guid.NewGuid() + ".jpg");
             var fileWebRequest = WebRequest.Create(fileurl);
 
             using (var fileWebResponse = fileWebRequest.GetResponse())
             {
-                using (var tempStream = File.Create(tempfilename))
+                using (var tempStream = File.Create(tempFilename))
                 {
                     var buffer = new byte[1024];
                     using (var fileStream = fileWebResponse.GetResponseStream())
                     {
-                        int bytesRead;
-                        do
+                        if (fileStream != null)
                         {
-                            bytesRead = fileStream.Read(buffer, 0, buffer.Length);
-
-                            tempStream.Write(buffer, 0, bytesRead);
-                        } while (bytesRead > 0);
+                            int bytesRead;
+                            do
+                            {
+                                bytesRead = fileStream.Read(buffer, 0, buffer.Length);
+                                tempStream.Write(buffer, 0, bytesRead);
+                            } while (bytesRead > 0);
+                        }
                     }
                 }
             }
@@ -118,11 +131,11 @@ namespace BingWallpaper
             ConsoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
 
             var newImage = false;
-            if (!ImageHashing.ImageInHash(tempfilename) && !File.Exists(filePath))
+            if (!ImageHashing.ImageInHash(tempFilename) && !File.Exists(filePath))
             {
                 newImage = true;
                 ConsoleWriter.WriteLine(3, "Found New Image");
-                using (var srcImg = Image.FromFile(tempfilename))
+                using (var srcImg = Image.FromFile(tempFilename))
                 {
                     ImagePropertyHandling.SetTitleOnImage(xmlNode, srcImg);
                     srcImg.Save(filePath);
@@ -135,13 +148,13 @@ namespace BingWallpaper
             }
 
             UrlsRetrieved.Add(fileurl);
-            File.Delete(tempfilename);
+            File.Delete(tempFilename);
             return newImage;
         }
 
         internal static string GetFileName(XmlNode xmlNode)
         {
-            var name = $"{xmlNode.SelectSingleNode("urlBase").InnerText.Split('/').Last()}.jpg";
+            var name = $"{xmlNode.SelectSingleNode("urlBase")?.InnerText.Substring(11)}.jpg";
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 

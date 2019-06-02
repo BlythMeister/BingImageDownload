@@ -3,7 +3,6 @@
 *.ncrunchproject
 *.bak
 *.orig
-.paket/paket.exe
 /Output
 
 ## Ignore Visual Studio temporary files, build results, and

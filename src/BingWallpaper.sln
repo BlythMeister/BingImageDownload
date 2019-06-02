@@ -6,7 +6,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{365AEF
 		..\paket.dependencies = ..\paket.dependencies
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BingWallpaper", "BingWallpaper.csproj", "{A71C913C-714E-4A75-A188-CB23551100A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BingWallpaper", "App\BingWallpaper.csproj", "{A71C913C-714E-4A75-A188-CB23551100A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

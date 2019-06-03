@@ -5,14 +5,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Xml;
 
 namespace BingWallpaper
 {
     internal static class BingInteractionAndParsing
     {
-        private const string Url = "http://bing.com";
+        private const string Url = "https://bing.com";
         internal static readonly string DownloadPath = Path.Combine(Program.AppData, "Temp");
         internal static readonly List<string> UrlsRetrieved = new List<string>();
         internal static readonly List<CultureInfo> Countries = new List<CultureInfo>();
@@ -32,17 +31,7 @@ namespace BingWallpaper
                 var endDate = string.Empty;
                 while (moreImages)
                 {
-                    XmlNodeList xmlNodeList;
-
-                    try
-                    {
-                        xmlNodeList = GetImages(currentIndex, country.Name);
-                    }
-                    catch (Exception e)
-                    {
-                        ConsoleWriter.WriteLine($"Error getting images for {country.Name} - {country.DisplayName}", e);
-                        continue;
-                    }
+                    var xmlNodeList = GetImages(currentIndex, country.Name);
 
                     if (xmlNodeList == null)
                     {
@@ -97,39 +86,30 @@ namespace BingWallpaper
 
         internal static bool DownloadAndSaveImage(XmlNode xmlNode)
         {
-            var fileurl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
-            if (UrlsRetrieved.Contains(fileurl))
+            var fileUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
+            if (UrlsRetrieved.Contains(fileUrl))
             {
-                ConsoleWriter.WriteLine(2, "Already Dowloaded Image URL");
+                ConsoleWriter.WriteLine(2, "Already Downloaded Image URL");
                 return false;
             }
 
             var filePath = Path.Combine(Program.SavePath, GetFileName(xmlNode));
             var tempFilename = Path.Combine(DownloadPath, Guid.NewGuid() + ".jpg");
-            var fileWebRequest = WebRequest.Create(fileurl);
 
-            using (var fileWebResponse = fileWebRequest.GetResponse())
+            try
             {
-                using (var tempStream = File.Create(tempFilename))
+                using (var client = new WebClient())
                 {
-                    var buffer = new byte[1024];
-                    using (var fileStream = fileWebResponse.GetResponseStream())
-                    {
-                        if (fileStream != null)
-                        {
-                            int bytesRead;
-                            do
-                            {
-                                bytesRead = fileStream.Read(buffer, 0, buffer.Length);
-                                tempStream.Write(buffer, 0, bytesRead);
-                            } while (bytesRead > 0);
-                        }
-                    }
+                    client.DownloadFile(fileUrl, tempFilename);
                 }
+            }
+            catch (Exception e)
+            {
+                ConsoleWriter.WriteLine(2, $"Error downloading image from url: {fileUrl}", e);
+                return false;
             }
 
             ConsoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
-
             var newImage = false;
             if (!ImageHashing.ImageInHash(tempFilename) && !File.Exists(filePath))
             {
@@ -147,26 +127,26 @@ namespace BingWallpaper
                 ConsoleWriter.WriteLine(3, "Identical Image Downloaded");
             }
 
-            UrlsRetrieved.Add(fileurl);
+            UrlsRetrieved.Add(fileUrl);
             File.Delete(tempFilename);
             return newImage;
         }
 
         internal static string GetFileName(XmlNode xmlNode)
         {
-            var name = $"{xmlNode.SelectSingleNode("urlBase")?.InnerText.Substring(11)}.jpg";
+            var name = $"{xmlNode.SelectSingleNode("urlBase")?.InnerText.Substring(7)}.jpg";
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 
         internal static XmlNodeList GetImages(int currentIndex, string country)
         {
-            var webRequest = WebRequest.Create($"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=1&mkt={country}");
-            using (var webResponse = webRequest.GetResponse())
-            {
-                using (var streamReader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8))
-                {
-                    var output = streamReader.ReadToEnd();
+            var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=1&mkt={country}";
 
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    var output = client.DownloadString(urlToLoad);
                     if (output.Length > 0 && output.Contains("<images>"))
                     {
                         try
@@ -176,12 +156,19 @@ namespace BingWallpaper
 
                             return xmlDocument.GetElementsByTagName("image");
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
+                            ConsoleWriter.WriteLine("Error getting images from XML response", e);
                             return null;
                         }
                     }
+
+                    return null;
                 }
+            }
+            catch (Exception e)
+            {
+                ConsoleWriter.WriteLine($"Error loading image search URL: {urlToLoad}", e);
                 return null;
             }
         }

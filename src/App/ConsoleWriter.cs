@@ -12,7 +12,17 @@ namespace BingWallpaper
 
         internal static void WriteLine(string text, Exception exception)
         {
-            WriteLine($"{text} - {exception}"); ;
+            WriteLine($"{text} - {exception}");
+        }
+
+        internal static void WriteLine(int indentation, string text, Exception exception)
+        {
+            for (var i = 0; i < indentation; i++)
+            {
+                text = $"  {text}";
+            }
+
+            WriteLine($"{text} - {exception}");
         }
 
         internal static void WriteLine(int indentation, string text)

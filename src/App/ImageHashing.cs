@@ -9,11 +9,11 @@ namespace BingWallpaper
     internal static class ImageHashing
     {
         internal static readonly List<HistogramHash> HistogramHashTable = new List<HistogramHash>();
-        internal static readonly string HitogramPath = Path.Combine(Program.AppData, "TempHistogram");
+        internal static readonly string HistogramPath = Path.Combine(Program.AppData, "TempHistogram");
 
-        internal static bool ImageInHash(string tempfilename)
+        internal static bool ImageInHash(string tempFilename)
         {
-            var testHash = GetRgbHistogram(tempfilename);
+            var testHash = GetRgbHistogram(tempFilename);
             return HistogramHashTable.Any(hash => hash.Equal(testHash));
         }
 
@@ -39,9 +39,9 @@ namespace BingWallpaper
         private static HistogramHash GetRgbHistogram(string file)
         {
             var values = new List<int>();
-            var histogramfile = Path.Combine(HitogramPath, Guid.NewGuid() + ".jpg");
-            File.Copy(file, histogramfile);
-            using (var bmp = new System.Drawing.Bitmap(histogramfile))
+            var histogramFile = Path.Combine(HistogramPath, Guid.NewGuid() + ".jpg");
+            File.Copy(file, histogramFile);
+            using (var bmp = new System.Drawing.Bitmap(histogramFile))
             {
                 // Luminance
                 var hslStatistics = new ImageStatisticsHSL(bmp);
@@ -54,7 +54,7 @@ namespace BingWallpaper
                 values.AddRange(rgbStatistics.Blue.Values.ToList());
             }
 
-            File.Delete(histogramfile);
+            File.Delete(histogramFile);
 
             return new HistogramHash(file, values);
         }

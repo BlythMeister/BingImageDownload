@@ -14,7 +14,7 @@ namespace BingWallpaper
             if (!Directory.Exists(Program.SavePath)) Directory.CreateDirectory(Program.SavePath);
             if (!Directory.Exists(Program.AppData)) Directory.CreateDirectory(Program.AppData);
             if (!Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.CreateDirectory(BingInteractionAndParsing.DownloadPath);
-            if (!Directory.Exists(ImageHashing.HitogramPath)) Directory.CreateDirectory(ImageHashing.HitogramPath);
+            if (!Directory.Exists(ImageHashing.HistogramPath)) Directory.CreateDirectory(ImageHashing.HistogramPath);
 
             var logPath = Path.Combine(Program.SavePath, "Logs");
             if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
@@ -102,7 +102,7 @@ namespace BingWallpaper
             try
             {
                 if (Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.Delete(BingInteractionAndParsing.DownloadPath, true);
-                if (Directory.Exists(ImageHashing.HitogramPath)) Directory.Delete(ImageHashing.HitogramPath, true);
+                if (Directory.Exists(ImageHashing.HistogramPath)) Directory.Delete(ImageHashing.HistogramPath, true);
             }
             catch (Exception exception)
             {

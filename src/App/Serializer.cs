@@ -26,7 +26,7 @@ namespace BingWallpaper
 
         internal static void Serialize<T>(T collection, string path) where T : new()
         {
-            File.WriteAllText(path, JsonConvert.SerializeObject(collection));
+            File.WriteAllText(path, JsonConvert.SerializeObject(collection, Formatting.Indented));
         }
     }
 }

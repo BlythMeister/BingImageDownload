@@ -111,7 +111,7 @@ namespace BingWallpaper
 
             ConsoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
             var newImage = false;
-            if (!ImageHashing.ImageInHash(tempFilename) && !File.Exists(filePath))
+            if (!ImageHashing.ImageInHash(tempFilename, filePath))
             {
                 newImage = true;
                 ConsoleWriter.WriteLine(3, "Found New Image");
@@ -134,7 +134,22 @@ namespace BingWallpaper
 
         internal static string GetFileName(XmlNode xmlNode)
         {
-            var name = $"{xmlNode.SelectSingleNode("urlBase")?.InnerText.Substring(7)}.jpg";
+            var nameNode = xmlNode.SelectSingleNode("urlBase");
+            if (nameNode == null) throw new Exception("Missing urlBase Node");
+
+            var name = nameNode.InnerText.Substring(7);
+            if (name.Contains("_"))
+            {
+                name = name.Substring(0, name.IndexOf("_", StringComparison.Ordinal));
+            }
+
+            if (name.Contains("."))
+            {
+                name = name.Substring(name.IndexOf(".", StringComparison.Ordinal) + 1);
+            }
+
+            name = $"{name}.jpg";
+
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 

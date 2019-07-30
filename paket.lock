@@ -7,4 +7,4 @@ NUGET
       AForge.Math (>= 2.2.5)
     AForge.Math (2.2.5)
       AForge (>= 2.2.5)
-    Newtonsoft.Json (11.0.2)
+    Newtonsoft.Json (12.0.2)

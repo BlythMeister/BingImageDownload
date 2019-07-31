@@ -8,6 +8,7 @@ namespace BingWallpaper
     internal class Program
     {
         internal static readonly string SavePath = ConfigurationManager.AppSettings["ImageSavePath"];
+        internal static readonly string ArchivePath = Path.Combine(SavePath, "Archive");
         internal static readonly string AppData = Path.Combine(SavePath, "App_Data");
 
         private static void Main()

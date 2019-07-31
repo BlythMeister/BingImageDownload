@@ -30,7 +30,7 @@ namespace BingWallpaper
             HistogramHashTable.Add(GetRgbHistogram(filePath));
         }
 
-        internal static void ClearHash()
+        internal static void RemoveInvalidHashEntries()
         {
             HistogramHashTable.RemoveAll(x => x.IsInvalid);
         }

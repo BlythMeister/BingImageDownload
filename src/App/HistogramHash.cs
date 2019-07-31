@@ -34,7 +34,7 @@ namespace BingWallpaper
             get
             {
                 if (string.IsNullOrWhiteSpace(FileName)) return true;
-                if (!File.Exists(FileName)) return true;
+                if (!File.Exists(Path.Combine(Program.SavePath, FileName)) && !File.Exists(Path.Combine(Program.ArchivePath, FileName))) return true;
                 if (Blue == null || !Blue.Any()) return true;
                 if (Green == null || !Green.Any()) return true;
                 if (Red == null || !Red.Any()) return true;

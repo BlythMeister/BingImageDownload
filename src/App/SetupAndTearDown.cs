@@ -12,6 +12,7 @@ namespace BingWallpaper
         internal static void Startup()
         {
             if (!Directory.Exists(Program.SavePath)) Directory.CreateDirectory(Program.SavePath);
+            if (!Directory.Exists(Program.ArchivePath)) Directory.CreateDirectory(Program.ArchivePath);
             if (!Directory.Exists(Program.AppData)) Directory.CreateDirectory(Program.AppData);
             if (!Directory.Exists(BingInteractionAndParsing.DownloadPath)) Directory.CreateDirectory(BingInteractionAndParsing.DownloadPath);
             if (!Directory.Exists(ImageHashing.HistogramPath)) Directory.CreateDirectory(ImageHashing.HistogramPath);
@@ -30,7 +31,7 @@ namespace BingWallpaper
 
             ArchiveOldImages();
 
-            ImageHashing.ClearHash();
+            ImageHashing.RemoveInvalidHashEntries();
             HashExistingImages();
 
             if (ImageHashing.HistogramHashTable.Any())
@@ -54,9 +55,7 @@ namespace BingWallpaper
                 var preventArchiveDupes = bool.Parse(ConfigurationManager.AppSettings["PreventDuplicatesInArchive"]);
                 if (preventArchiveDupes)
                 {
-                    var archivePath = Path.Combine(Program.SavePath, "Archive");
-                    if (!Directory.Exists(archivePath)) Directory.CreateDirectory(archivePath);
-                    foreach (var file in Directory.GetFiles(archivePath, "*.jpg").Where(x => !ImageHashing.HaveFilePathInHashTable(x)))
+                    foreach (var file in Directory.GetFiles(Program.ArchivePath, "*.jpg").Where(x => !ImageHashing.HaveFilePathInHashTable(x)))
                     {
                         ConsoleWriter.WriteLine($"Hashing file: {file}");
                         ImageHashing.AddHash(file);

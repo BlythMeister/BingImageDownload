@@ -1,5 +1,5 @@
+framework: auto-detect
 source https://api.nuget.org/v3/index.json
-framework auto-detect
 
 nuget AForge.Imaging.NetStandard
 nuget AForge.Math.NetStandard

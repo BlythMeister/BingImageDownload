@@ -19,16 +19,16 @@ build_script:
 - cmd: >-
     dotnet tool restore
 
-    dotnet pack src\BingImageDowload.sln --configuration Release
+    dotnet pack src\BingImageDownload.sln --configuration Release
 test: off
 artifacts:
-- path: src\BingImageDowload\nupkg\BingImageDowload.$(appveyor_build_version).nupkg
-  name: BingImageDowload.$(appveyor_build_version).nupkg
+- path: src\BingImageDownload\nupkg\BingImageDownload.$(appveyor_build_version).nupkg
+  name: BingImageDownload.$(appveyor_build_version).nupkg
 deploy:
 - provider: NuGet
   api_key:
     secure: en+66W6nW/JqtNDDIEeRUwdWFjw2YsKBj614gISiX+UXcgUfTvUV+ct9ZPpez1qY
-  artifact: BingImageDowload.$(appveyor_build_version).nupkg
+  artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:
     branch: master
 - provider: GitHub
@@ -37,8 +37,8 @@ deploy:
   description: Release v$(appveyor_build_version)
   auth_token:
     secure: g+iWKsE2NIl0nbHRppdKG9viG1Drk5x6U++4dXtMfM9FLyOFqaRafq6qKpkyO9x7
-  repository: BlythMeister/BingImageDowload
-  artifact: BingImageDowload.$(appveyor_build_version).nupkg
+  repository: BlythMeister/BingImageDownload
+  artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:
     branch: master
 

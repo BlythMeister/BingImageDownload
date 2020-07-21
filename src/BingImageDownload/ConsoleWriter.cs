@@ -12,6 +12,7 @@ namespace BingImageDownload
 
         internal ConsoleWriter(Paths paths)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             logWriter = new StreamWriter(Path.Combine(paths.LogPath, $"Log-{DateTime.UtcNow:yyyy-MM-dd}.txt"), false, Encoding.UTF8);
 
             if (tempBuilder.Length > 0)

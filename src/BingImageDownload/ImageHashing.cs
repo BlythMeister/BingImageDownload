@@ -52,6 +52,8 @@ namespace BingImageDownload
             if (HaveFilePathInHashTable(filePath)) return;
 
             histogramHashTable.Add(GetRgbHistogram(filePath));
+
+            SaveHashTableBin();
         }
 
         internal void SaveHashTableBin()

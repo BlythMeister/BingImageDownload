@@ -155,6 +155,7 @@ namespace BingImageDownload
 
             urlsRetrieved.Add(fileUrl);
             File.Delete(tempFilename);
+            SaveUrlBin();
             return newImage;
         }
 

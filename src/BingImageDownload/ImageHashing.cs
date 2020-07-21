@@ -45,13 +45,16 @@ namespace BingImageDownload
             return histogramHashTable.Any(x => x.FileName.Equals(fileName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        internal void AddHash(string filePath)
+        internal void AddHash(string filePath, bool saveHashTable = true)
         {
             if (HaveFilePathInHashTable(filePath)) return;
 
             histogramHashTable.Add(GetRgbHistogram(filePath));
 
-            SaveHashTableBin();
+            if (saveHashTable)
+            {
+                SaveHashTableBin();
+            }
         }
 
         private void SaveHashTableBin()
@@ -74,14 +77,16 @@ namespace BingImageDownload
                 foreach (var file in Directory.GetFiles(paths.SavePath, "*.jpg").Where(x => !HaveFilePathInHashTable(x)))
                 {
                     consoleWriter.WriteLine($"Hashing file: {file}");
-                    AddHash(file);
+                    AddHash(file, false);
                 }
 
                 foreach (var file in Directory.GetFiles(paths.ArchivePath, "*.jpg").Where(x => !HaveFilePathInHashTable(x)))
                 {
                     consoleWriter.WriteLine($"Hashing file: {file}");
-                    AddHash(file);
+                    AddHash(file, false);
                 }
+
+                SaveHashTableBin();
             }
             catch (Exception)
             {

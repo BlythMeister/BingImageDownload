@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BingImageDownload": {
+      "commandName": "Project",
+      "commandLineArgs": "-p \"F:\\Bing Wallpaper\" -a 1"
+    }
+  }
+}

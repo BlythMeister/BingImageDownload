@@ -26,10 +26,16 @@ Automate flow http://llamalab.com/automate/community/flows/21377 will update you
 Usage
 =================
 
-Setup the 2 app.config values for where to save the images.
-Then run the .exe.
+```
+Usage: BingImageDownload [options]
 
-You can setup an automated scheduled task in windows to run the exe daily to get more images.
+Options:
+  -p|--path <PATH>      The path to where images should be saved (Default: C:\Temp\BingImageDownload)
+  -a|--archive <VALUE>  The number of months to archive after (Default: 1)
+  -?|-h|--help          Show help information
+```
+
+You can setup an automated scheduled task in windows to run the dotnet tool daily to get more images.
 
 Setup you desktop background on the save folder & enjoy auto changing Bing images on your desktop!
 

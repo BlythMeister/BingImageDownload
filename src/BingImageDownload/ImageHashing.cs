@@ -22,15 +22,17 @@ namespace BingImageDownload
 
             consoleWriter.WriteLine($"Have loaded {histogramHashTable.Count} previous hashes");
 
-            RemoveInvalidHashEntries();
-
-            consoleWriter.WriteLine($"Have {histogramHashTable.Count} previous hashes after removing invalid");
+            HashExistingImages();
 
             SaveHashTableBin();
 
-            HashExistingImages();
-
             consoleWriter.WriteLine($"Have {histogramHashTable.Count} hashed images total");
+
+            RemoveInvalidHashEntries();
+
+            SaveHashTableBin();
+
+            consoleWriter.WriteLine($"Have {histogramHashTable.Count} previous hashes after removing invalid");
         }
 
         internal bool ImageInHash(string tempFilename, string realFileName)

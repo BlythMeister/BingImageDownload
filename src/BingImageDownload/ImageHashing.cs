@@ -64,7 +64,7 @@ namespace BingImageDownload
 
         private void HashExistingImages(int retryCount = 0)
         {
-            consoleWriter.WriteLine($"Hashing images missing from hash (attempt: {retryCount + 1}");
+            consoleWriter.WriteLine($"Hashing images missing from hash (attempt: {retryCount + 1})");
 
             try
             {

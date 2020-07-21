@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{365AEF15-3FCF-4540-ACFF-CAD20E2D2142}"
+	ProjectSection(SolutionItems) = preProject
+		..\paket.dependencies = ..\paket.dependencies
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{3A0CE93C-B0E9-490A-890F-2D94C666A9FA}"
+	ProjectSection(SolutionItems) = preProject
+		..\appveyor.yml = ..\appveyor.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BingImageDownload", "BingImageDownload\BingImageDownload.csproj", "{3497DF69-D5A9-4745-B422-4A15C29AAFC4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3497DF69-D5A9-4745-B422-4A15C29AAFC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3497DF69-D5A9-4745-B422-4A15C29AAFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3497DF69-D5A9-4745-B422-4A15C29AAFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3497DF69-D5A9-4745-B422-4A15C29AAFC4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {703096B1-A32F-4219-A3F9-3252DA91BB70}
+	EndGlobalSection
+EndGlobal

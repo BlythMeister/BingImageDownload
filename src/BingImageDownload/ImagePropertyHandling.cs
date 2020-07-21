@@ -3,11 +3,11 @@ using System.Drawing;
 using System.Text;
 using System.Xml;
 
-namespace BingWallpaper
+namespace BingImageDownload
 {
-    internal static class ImagePropertyHandling
+    internal class ImagePropertyHandling
     {
-        internal static void SetTitleOnImage(XmlNode xmlNode, Image image)
+        internal void SetTitleOnImage(XmlNode xmlNode, Image image)
         {
             var copyright = xmlNode.SelectSingleNode("copyright")?.InnerText;
             var title = copyright;
@@ -28,7 +28,7 @@ namespace BingWallpaper
             SetPropertyItemString(image, ImageMetadataPropertyId.Keywords, DateTime.Now.ToShortDateString());
         }
 
-        private static void SetPropertyItemString(Image srcImg, ImageMetadataPropertyId id, string value)
+        private void SetPropertyItemString(Image srcImg, ImageMetadataPropertyId id, string value)
         {
             var buffer = Encoding.Unicode.GetBytes(value);
             var propItem = srcImg.GetPropertyItem(srcImg.PropertyItems[0].Id);
@@ -37,6 +37,14 @@ namespace BingWallpaper
             propItem.Len = buffer.Length;
             propItem.Value = buffer;
             srcImg.SetPropertyItem(propItem);
+        }
+
+        private enum ImageMetadataPropertyId
+        {
+            Title = 40091,
+            Comment = 40092,
+            Author = 40093,
+            Keywords = 40094
         }
     }
 }

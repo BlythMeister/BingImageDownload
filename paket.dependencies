@@ -1,7 +1,7 @@
 source https://api.nuget.org/v3/index.json
 framework auto-detect
 
-nuget AForge
-nuget AForge.Imaging
-nuget AForge.Math
-nuget Newtonsoft.Json
+nuget AForge.Imaging.NetStandard
+nuget AForge.Math.NetStandard
+nuget McMaster.Extensions.CommandLineUtils
+

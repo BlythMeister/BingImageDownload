@@ -5,24 +5,50 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Xml;
 
-namespace BingWallpaper
+namespace BingImageDownload
 {
-    internal static class BingInteractionAndParsing
+    internal class BingInteractionAndParsing
     {
         private const string Url = "https://bing.com";
-        internal static readonly string DownloadPath = Path.Combine(Program.AppData, "Temp");
-        internal static readonly List<string> UrlsRetrieved = new List<string>();
-        internal static readonly List<CultureInfo> Countries = new List<CultureInfo>();
 
-        internal static void GetBingImages()
+        private readonly ConsoleWriter consoleWriter;
+        private readonly ImageHashing imageHashing;
+        private readonly ImagePropertyHandling imagePropertyHandling;
+        private readonly Paths paths;
+        private readonly List<string> urlsRetrieved;
+        private readonly List<CultureInfo> countries;
+        private readonly string urlsRetrievedBinFile;
+
+        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageHashing imageHashing, ImagePropertyHandling imagePropertyHandling, Paths paths)
+        {
+            this.consoleWriter = consoleWriter;
+            this.imageHashing = imageHashing;
+            this.imagePropertyHandling = imagePropertyHandling;
+            this.paths = paths;
+            urlsRetrievedBinFile = Path.Combine(paths.AppData, "urlsRetrieved.bin");
+
+            urlsRetrieved = Serializer.Deserialize<List<string>>(urlsRetrievedBinFile).ToList();
+            countries = CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-")).ToList();
+
+            consoleWriter.WriteLine($"Have loaded {urlsRetrieved.Count} previous URLs");
+            consoleWriter.WriteLine($"Have loaded {countries.Count} countries");
+        }
+
+        internal void GetBingImages(CancellationToken cancellationToken)
         {
             var downloadedImages = 0;
 
-            foreach (var country in Countries)
+            foreach (var country in countries)
             {
-                ConsoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                consoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
                 var countryImages = 0;
                 var countryDuplicateImages = 0;
                 var currentIndex = 0;
@@ -53,7 +79,7 @@ namespace BingWallpaper
                             startDate = nodeStartDate;
                             endDate = nodeEndDate;
                             var imageUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
-                            ConsoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} index {currentIndex} was: {imageUrl}");
+                            consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} index {currentIndex} was: {imageUrl}");
                             try
                             {
                                 if (DownloadAndSaveImage(xmlNode))
@@ -67,7 +93,7 @@ namespace BingWallpaper
                             }
                             catch (Exception ex)
                             {
-                                ConsoleWriter.WriteLine("There was an error getting image", ex);
+                                consoleWriter.WriteLine("There was an error getting image", ex);
                             }
                         }
 
@@ -76,25 +102,25 @@ namespace BingWallpaper
                 }
 
                 downloadedImages += countryImages;
-                ConsoleWriter.WriteLine($"Found {countryImages} new images for {country.Name}");
-                ConsoleWriter.WriteLine($"Found {countryDuplicateImages} duplicate images for {country.Name}");
-                ConsoleWriter.WriteLine("");
+                consoleWriter.WriteLine($"Found {countryImages} new images for {country.Name}");
+                consoleWriter.WriteLine($"Found {countryDuplicateImages} duplicate images for {country.Name}");
+                consoleWriter.WriteLine("");
             }
 
-            ConsoleWriter.WriteLine($"Found {downloadedImages} new images");
+            consoleWriter.WriteLine($"Found {downloadedImages} new images");
         }
 
-        internal static bool DownloadAndSaveImage(XmlNode xmlNode)
+        internal bool DownloadAndSaveImage(XmlNode xmlNode)
         {
             var fileUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
-            if (UrlsRetrieved.Contains(fileUrl))
+            if (urlsRetrieved.Contains(fileUrl))
             {
-                ConsoleWriter.WriteLine(2, "Already Downloaded Image URL");
+                consoleWriter.WriteLine(2, "Already Downloaded Image URL");
                 return false;
             }
 
-            var filePath = Path.Combine(Program.SavePath, GetFileName(xmlNode));
-            var tempFilename = Path.Combine(DownloadPath, Guid.NewGuid() + ".jpg");
+            var filePath = Path.Combine(paths.SavePath, GetFileName(xmlNode));
+            var tempFilename = Path.Combine(paths.DownloadPath, Guid.NewGuid() + ".jpg");
 
             try
             {
@@ -105,34 +131,34 @@ namespace BingWallpaper
             }
             catch (Exception e)
             {
-                ConsoleWriter.WriteLine(2, $"Error downloading image from url: {fileUrl}", e);
+                consoleWriter.WriteLine(2, $"Error downloading image from url: {fileUrl}", e);
                 return false;
             }
 
-            ConsoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
+            consoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
             var newImage = false;
-            if (!ImageHashing.ImageInHash(tempFilename, filePath))
+            if (!imageHashing.ImageInHash(tempFilename, filePath))
             {
                 newImage = true;
-                ConsoleWriter.WriteLine(3, "Found New Image");
+                consoleWriter.WriteLine(3, "Found New Image");
                 using (var srcImg = Image.FromFile(tempFilename))
                 {
-                    ImagePropertyHandling.SetTitleOnImage(xmlNode, srcImg);
+                    imagePropertyHandling.SetTitleOnImage(xmlNode, srcImg);
                     srcImg.Save(filePath);
                 }
-                ImageHashing.AddHash(filePath);
+                imageHashing.AddHash(filePath);
             }
             else
             {
-                ConsoleWriter.WriteLine(3, "Identical Image Downloaded");
+                consoleWriter.WriteLine(3, "Identical Image Downloaded");
             }
 
-            UrlsRetrieved.Add(fileUrl);
+            urlsRetrieved.Add(fileUrl);
             File.Delete(tempFilename);
             return newImage;
         }
 
-        internal static string GetFileName(XmlNode xmlNode)
+        internal string GetFileName(XmlNode xmlNode)
         {
             var nameNode = xmlNode.SelectSingleNode("urlBase");
             if (nameNode == null) throw new Exception("Missing urlBase Node");
@@ -153,7 +179,7 @@ namespace BingWallpaper
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 
-        internal static XmlNodeList GetImages(int currentIndex, string country)
+        internal XmlNodeList GetImages(int currentIndex, string country)
         {
             var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=1&mkt={country}";
 
@@ -173,7 +199,7 @@ namespace BingWallpaper
                         }
                         catch (Exception e)
                         {
-                            ConsoleWriter.WriteLine("Error getting images from XML response", e);
+                            consoleWriter.WriteLine("Error getting images from XML response", e);
                             return null;
                         }
                     }
@@ -183,9 +209,14 @@ namespace BingWallpaper
             }
             catch (Exception e)
             {
-                ConsoleWriter.WriteLine($"Error loading image search URL: {urlToLoad}", e);
+                consoleWriter.WriteLine($"Error loading image search URL: {urlToLoad}", e);
                 return null;
             }
+        }
+
+        internal void SaveUrlBin()
+        {
+            Serializer.Serialize(urlsRetrieved, urlsRetrievedBinFile);
         }
     }
 }

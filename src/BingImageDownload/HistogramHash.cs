@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace BingWallpaper
+namespace BingImageDownload
 {
-    public class HistogramHash
+    internal class HistogramHash
     {
         public string FileName { get; }
         public List<int> Blue { get; }
@@ -16,7 +16,7 @@ namespace BingWallpaper
         public List<int> Luminance { get; }
         public List<int> Saturation { get; }
 
-        public HistogramHash(string fileName, List<int> blue, List<int> green, List<int> red, List<int> y, List<int> cb, List<int> cr, List<int> saturation, List<int> luminance)
+        internal HistogramHash(string fileName, List<int> blue, List<int> green, List<int> red, List<int> y, List<int> cb, List<int> cr, List<int> saturation, List<int> luminance)
         {
             FileName = fileName;
             Blue = blue;
@@ -29,25 +29,22 @@ namespace BingWallpaper
             Luminance = luminance;
         }
 
-        public bool IsInvalid
+        internal bool IsInvalid(Paths paths)
         {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(FileName)) return true;
-                if (!File.Exists(Path.Combine(Program.SavePath, FileName)) && !File.Exists(Path.Combine(Program.ArchivePath, FileName))) return true;
-                if (Blue == null || !Blue.Any()) return true;
-                if (Green == null || !Green.Any()) return true;
-                if (Red == null || !Red.Any()) return true;
-                if (Y == null || !Y.Any()) return true;
-                if (Cb == null || !Cb.Any()) return true;
-                if (Cr == null || !Cr.Any()) return true;
-                if (Saturation == null || !Saturation.Any()) return true;
-                if (Luminance == null || !Luminance.Any()) return true;
-                return false;
-            }
+            if (string.IsNullOrWhiteSpace(FileName)) return true;
+            if (!File.Exists(Path.Combine(paths.SavePath, FileName)) && !File.Exists(Path.Combine(paths.ArchivePath, FileName))) return true;
+            if (Blue == null || !Blue.Any()) return true;
+            if (Green == null || !Green.Any()) return true;
+            if (Red == null || !Red.Any()) return true;
+            if (Y == null || !Y.Any()) return true;
+            if (Cb == null || !Cb.Any()) return true;
+            if (Cr == null || !Cr.Any()) return true;
+            if (Saturation == null || !Saturation.Any()) return true;
+            if (Luminance == null || !Luminance.Any()) return true;
+            return false;
         }
 
-        public bool Equal(HistogramHash other)
+        internal bool Equal(HistogramHash other)
         {
             return Blue.SequenceEqual(other.Blue) &&
                    Green.SequenceEqual(other.Green) &&

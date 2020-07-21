@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BingImageDownload
 {
-    internal class HistogramHash
+    public class HistogramHash
     {
         public string FileName { get; }
         public List<int> Blue { get; }
@@ -16,7 +16,7 @@ namespace BingImageDownload
         public List<int> Luminance { get; }
         public List<int> Saturation { get; }
 
-        internal HistogramHash(string fileName, List<int> blue, List<int> green, List<int> red, List<int> y, List<int> cb, List<int> cr, List<int> saturation, List<int> luminance)
+        public HistogramHash(string fileName, List<int> blue, List<int> green, List<int> red, List<int> y, List<int> cb, List<int> cr, List<int> saturation, List<int> luminance)
         {
             FileName = fileName;
             Blue = blue;

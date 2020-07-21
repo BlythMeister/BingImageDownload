@@ -18,19 +18,21 @@ namespace BingImageDownload
         private readonly ImageHashing imageHashing;
         private readonly ImagePropertyHandling imagePropertyHandling;
         private readonly Paths paths;
+        private readonly Serializer serializer;
         private readonly List<string> urlsRetrieved;
         private readonly List<CultureInfo> countries;
         private readonly string urlsRetrievedBinFile;
 
-        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageHashing imageHashing, ImagePropertyHandling imagePropertyHandling, Paths paths)
+        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageHashing imageHashing, ImagePropertyHandling imagePropertyHandling, Paths paths, Serializer serializer)
         {
             this.consoleWriter = consoleWriter;
             this.imageHashing = imageHashing;
             this.imagePropertyHandling = imagePropertyHandling;
             this.paths = paths;
+            this.serializer = serializer;
             urlsRetrievedBinFile = Path.Combine(paths.AppData, "urlsRetrieved.bin");
 
-            urlsRetrieved = Serializer.Deserialize<List<string>>(urlsRetrievedBinFile).ToList();
+            urlsRetrieved = serializer.Deserialize<List<string>>(urlsRetrievedBinFile).ToList();
             countries = CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-")).ToList();
 
             consoleWriter.WriteLine($"Have loaded {urlsRetrieved.Count} previous URLs");
@@ -215,9 +217,9 @@ namespace BingImageDownload
             }
         }
 
-        internal void SaveUrlBin()
+        private void SaveUrlBin()
         {
-            Serializer.Serialize(urlsRetrieved, urlsRetrievedBinFile);
+            serializer.Serialize(urlsRetrieved, urlsRetrievedBinFile);
         }
     }
 }

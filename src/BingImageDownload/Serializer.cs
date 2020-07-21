@@ -4,9 +4,16 @@ using System.IO;
 
 namespace BingImageDownload
 {
-    internal static class Serializer
+    internal class Serializer
     {
-        internal static T Deserialize<T>(string path) where T : new()
+        private readonly ConsoleWriter consoleWriter;
+
+        internal Serializer(ConsoleWriter consoleWriter)
+        {
+            this.consoleWriter = consoleWriter;
+        }
+
+        internal T Deserialize<T>(string path) where T : new()
         {
             try
             {
@@ -16,17 +23,24 @@ namespace BingImageDownload
                     return JsonConvert.DeserializeObject<T>(text);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignored
+                consoleWriter.WriteLine($"Error Loading {path}", e);
             }
 
             return new T();
         }
 
-        internal static void Serialize<T>(T collection, string path) where T : new()
+        internal void Serialize<T>(T collection, string path) where T : new()
         {
-            File.WriteAllText(path, JsonConvert.SerializeObject(collection, Formatting.Indented));
+            try
+            {
+                File.WriteAllText(path, JsonConvert.SerializeObject(collection, Formatting.Indented));
+            }
+            catch (Exception e)
+            {
+                consoleWriter.WriteLine($"Error Saving {path}", e);
+            }
         }
     }
 }

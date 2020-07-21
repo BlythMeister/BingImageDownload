@@ -9,28 +9,26 @@ namespace BingImageDownload
     internal class ImageHashing
     {
         private readonly ConsoleWriter consoleWriter;
+        private readonly Serializer serializer;
         private readonly Paths paths;
         private readonly List<HistogramHash> histogramHashTable;
         private readonly string histogramBinFile;
 
-        internal ImageHashing(ConsoleWriter consoleWriter, Paths paths)
+        internal ImageHashing(ConsoleWriter consoleWriter, Paths paths, Serializer serializer)
         {
             this.consoleWriter = consoleWriter;
+            this.serializer = serializer;
             this.paths = paths;
             histogramBinFile = Path.Combine(paths.AppData, "imageHistogram.bin");
-            histogramHashTable = Serializer.Deserialize<List<HistogramHash>>(histogramBinFile);
+            histogramHashTable = serializer.Deserialize<List<HistogramHash>>(histogramBinFile);
 
             consoleWriter.WriteLine($"Have loaded {histogramHashTable.Count} previous hashes");
 
             HashExistingImages();
 
-            SaveHashTableBin();
-
             consoleWriter.WriteLine($"Have {histogramHashTable.Count} hashed images total");
 
             RemoveInvalidHashEntries();
-
-            SaveHashTableBin();
 
             consoleWriter.WriteLine($"Have {histogramHashTable.Count} previous hashes after removing invalid");
         }
@@ -56,14 +54,15 @@ namespace BingImageDownload
             SaveHashTableBin();
         }
 
-        internal void SaveHashTableBin()
+        private void SaveHashTableBin()
         {
-            Serializer.Serialize(histogramHashTable, histogramBinFile);
+            serializer.Serialize(histogramHashTable, histogramBinFile);
         }
 
         private void RemoveInvalidHashEntries()
         {
             histogramHashTable.RemoveAll(x => x.IsInvalid(paths));
+            SaveHashTableBin();
         }
 
         private void HashExistingImages(int retryCount = 0)

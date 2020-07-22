@@ -1,4 +1,4 @@
-AForge.Imaging.NetStandard
-AForge.Math.NetStandard
 McMaster.Extensions.CommandLineUtils
+Newtonsoft.Json
+SixLabors.ImageSharp
 

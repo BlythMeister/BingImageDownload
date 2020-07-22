@@ -1,6 +1,6 @@
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -143,7 +143,7 @@ namespace BingImageDownload
             {
                 newImage = true;
                 consoleWriter.WriteLine(3, "Found New Image");
-                using (var srcImg = Image.FromFile(tempFilename))
+                using (var srcImg = Image.Load(tempFilename))
                 {
                     imagePropertyHandling.SetTitleOnImage(xmlNode, srcImg);
                     srcImg.Save(filePath);
@@ -157,7 +157,6 @@ namespace BingImageDownload
 
             urlsRetrieved.Add(fileUrl);
             File.Delete(tempFilename);
-            SaveUrlBin();
             return newImage;
         }
 
@@ -217,7 +216,7 @@ namespace BingImageDownload
             }
         }
 
-        private void SaveUrlBin()
+        internal void SaveUrlBin()
         {
             serializer.Serialize(urlsRetrieved, urlsRetrievedBinFile);
         }

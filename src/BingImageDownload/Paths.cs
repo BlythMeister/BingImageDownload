@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace BingImageDownload
@@ -15,7 +16,14 @@ namespace BingImageDownload
         {
             if (string.IsNullOrWhiteSpace(basePath))
             {
-                basePath = @"C:\Temp\BingImageDownload";
+                basePath = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+
+                if (string.IsNullOrWhiteSpace(basePath))
+                {
+                    throw new NullReferenceException("No directory passed & unable to locate 'HOME' path");
+                }
+
+                basePath = Path.Combine(basePath, "BingImageDownload");
             }
 
             SavePath = basePath;

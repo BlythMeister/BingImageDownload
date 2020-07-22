@@ -1,5 +1,6 @@
-﻿using System;
-using System.Drawing;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using System;
 using System.Text;
 using System.Xml;
 
@@ -22,29 +23,18 @@ namespace BingImageDownload
                 author = endOfCopyright == -1 ? copyright.Substring(copySymbolPosition + 1).Trim() : copyright.Substring(copySymbolPosition + 1, endOfCopyright).Trim();
             }
 
-            SetPropertyItemString(image, ImageMetadataPropertyId.Title, title);
-            SetPropertyItemString(image, ImageMetadataPropertyId.Author, author);
-            SetPropertyItemString(image, ImageMetadataPropertyId.Comment, $"Bing Image '{headline}' For {xmlNode.SelectSingleNode("startdate")?.InnerText}-{xmlNode.SelectSingleNode("enddate")?.InnerText}");
-            SetPropertyItemString(image, ImageMetadataPropertyId.Keywords, DateTime.Now.ToShortDateString());
-        }
+            image.Metadata.ExifProfile ??= new ExifProfile();
 
-        private void SetPropertyItemString(Image srcImg, ImageMetadataPropertyId id, string value)
-        {
-            var buffer = Encoding.Unicode.GetBytes(value);
-            var propItem = srcImg.GetPropertyItem(srcImg.PropertyItems[0].Id);
-            propItem.Id = (int)id;
-            propItem.Type = 1;
-            propItem.Len = buffer.Length;
-            propItem.Value = buffer;
-            srcImg.SetPropertyItem(propItem);
-        }
+            void SetPropertyItemString(ExifTag<byte[]> tag, string value)
+            {
+                var buffer = Encoding.Unicode.GetBytes(value);
+                image.Metadata.ExifProfile.SetValue(tag, buffer);
+            }
 
-        private enum ImageMetadataPropertyId
-        {
-            Title = 40091,
-            Comment = 40092,
-            Author = 40093,
-            Keywords = 40094
+            SetPropertyItemString(ExifTag.XPTitle, title);
+            SetPropertyItemString(ExifTag.XPAuthor, author);
+            SetPropertyItemString(ExifTag.XPComment, $"Bing Image '{headline}' For {xmlNode.SelectSingleNode("startdate")?.InnerText}-{xmlNode.SelectSingleNode("enddate")?.InnerText}");
+            SetPropertyItemString(ExifTag.XPKeywords, DateTime.Now.ToShortDateString());
         }
     }
 }

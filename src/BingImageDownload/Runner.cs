@@ -9,6 +9,9 @@ namespace BingImageDownload
         {
             var paths = new Paths(runnerArgs.Path);
             var consoleWriter = new ConsoleWriter(paths);
+
+            consoleWriter.WriteLine($"Saving to: {paths.SavePath}");
+
             var serializer = new Serializer(consoleWriter);
             var imageHashing = new ImageHashing(consoleWriter, paths, serializer);
             var imagePropertyHandling = new ImagePropertyHandling();
@@ -31,6 +34,8 @@ namespace BingImageDownload
             finally
             {
                 Thread.Sleep(TimeSpan.FromSeconds(30));
+                bingInteractionAndParsing.SaveUrlBin();
+                imageHashing.SaveHashTableBin();
                 fileClearer.ArchiveOldImages();
                 fileClearer.ClearLogFiles();
                 fileClearer.ClearTempFolders();

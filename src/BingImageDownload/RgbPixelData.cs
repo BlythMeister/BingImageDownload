@@ -2,17 +2,13 @@ namespace BingImageDownload
 {
     public class RgbPixelData
     {
-        public byte R { get; }
-        public byte G { get; }
-        public byte B { get; }
+        public int RGB { get; }
         public int X { get; }
         public int Y { get; }
 
-        public RgbPixelData(int x, int y, byte r, byte g, byte b)
+        public RgbPixelData(int x, int y, int rgb)
         {
-            R = r;
-            G = g;
-            B = b;
+            RGB = rgb;
             X = x;
             Y = y;
         }

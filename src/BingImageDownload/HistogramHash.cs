@@ -33,11 +33,8 @@ namespace BingImageDownload
                 var otherVal = other.Rgb.FirstOrDefault(x => x.X.Equals(val.X) && x.Y.Equals(val.Y));
                 if (otherVal == null) return false;
 
-                var differenceR = Math.Abs(val.R - otherVal.R);
-                var differenceG = Math.Abs(val.G - otherVal.G);
-                var differenceB = Math.Abs(val.B - otherVal.B);
-
-                if (differenceR > 3 || differenceG > 3 || differenceB > 3)
+                var difference = Math.Abs(val.RGB - otherVal.RGB);
+                if (difference > 3)
                 {
                     differencesOverTolerance++;
                 }
@@ -45,7 +42,7 @@ namespace BingImageDownload
 
             var differencePercent = differencesOverTolerance / Rgb.Count * 100;
 
-            return differencePercent < 1;
+            return differencePercent < 1f;
         }
     }
 }

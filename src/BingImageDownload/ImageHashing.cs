@@ -124,7 +124,7 @@ namespace BingImageDownload
                     for (var y = 0; y < image.Height; y++)
                     {
                         var pixel = image[x, y];
-                        Rgb.Add(new RgbPixelData(x, y, pixel.R, pixel.G, pixel.B));
+                        Rgb.Add(new RgbPixelData(x, y, pixel.R + pixel.G + pixel.B));
                     }
                 }
             }

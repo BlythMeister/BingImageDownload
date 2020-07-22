@@ -119,7 +119,6 @@ namespace BingImageDownload
                 return false;
             }
 
-            var filePath = Path.Combine(paths.SavePath, GetFileName(imageUrl));
             var tempFilename = Path.Combine(paths.DownloadPath, Guid.NewGuid() + ".jpg");
 
             try
@@ -135,8 +134,18 @@ namespace BingImageDownload
 
             consoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
             var newImage = false;
-            if (!imageHashing.ImageInHash(tempFilename, filePath))
+            var haveIdenticalImage = imageHashing.HaveIdenticalImageInHashTable(tempFilename);
+
+            if (!haveIdenticalImage)
             {
+                var filePath = Path.Combine(paths.SavePath, GetFileName(imageUrl));
+                var counter = 0;
+                while (imageHashing.HaveFileNameInHashTable(filePath))
+                {
+                    counter++;
+                    filePath = Path.Combine(paths.SavePath, GetFileName(imageUrl, counter));
+                }
+
                 newImage = true;
                 consoleWriter.WriteLine(3, "Found New Image");
                 using (var srcImg = Image.Load(tempFilename))
@@ -157,7 +166,7 @@ namespace BingImageDownload
             return newImage;
         }
 
-        internal string GetFileName(string imageUrl)
+        internal string GetFileName(string imageUrl, int counter = 0)
         {
             var name = imageUrl.Substring(7 + Url.Length);
             if (name.Contains("_"))
@@ -170,7 +179,7 @@ namespace BingImageDownload
                 name = name.Substring(name.IndexOf(".", StringComparison.Ordinal) + 1);
             }
 
-            name = $"{name}.jpg";
+            name = counter > 0 ? $"{name} ({counter}).jpg" : $"{name}.jpg";
 
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }

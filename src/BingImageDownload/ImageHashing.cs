@@ -107,7 +107,7 @@ namespace BingImageDownload
         {
             var histogramFile = Path.Combine(paths.HistogramPath, Guid.NewGuid() + ".jpg");
             File.Copy(filePath, histogramFile);
-            var rgba = new Dictionary<(int x, int y), uint>();
+            var rgba = new List<RgbaPixelData>();
             var fileName = Path.GetFileName(filePath);
 
             using (var image = Image.Load<Rgba32>(histogramFile))
@@ -119,7 +119,7 @@ namespace BingImageDownload
                     for (var y = 0; y < image.Height; y++)
                     {
                         var pixel = image[x, y];
-                        rgba.Add((x, y), pixel.Rgba);
+                        rgba.Add(new RgbaPixelData(x, y, pixel.Rgba));
                     }
                 }
             }

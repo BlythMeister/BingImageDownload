@@ -2,18 +2,18 @@
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System;
 using System.Text;
-using System.Xml;
+using System.Xml.Linq;
 
 namespace BingImageDownload
 {
     internal class ImagePropertyHandling
     {
-        internal void SetTitleOnImage(XmlNode xmlNode, Image image)
+        internal void SetImageExifTags(XElement imageNode, Image image)
         {
-            var copyright = xmlNode.SelectSingleNode("copyright")?.InnerText;
+            var copyright = imageNode.Element("copyright")?.Value;
             var title = copyright;
             var author = string.Empty;
-            var headline = xmlNode.SelectSingleNode("headline")?.InnerText;
+            var headline = imageNode.Element("headline")?.Value;
 
             if (copyright != null && copyright.Contains("©"))
             {
@@ -33,7 +33,7 @@ namespace BingImageDownload
 
             SetPropertyItemString(ExifTag.XPTitle, title);
             SetPropertyItemString(ExifTag.XPAuthor, author);
-            SetPropertyItemString(ExifTag.XPComment, $"Bing Image '{headline}' For {xmlNode.SelectSingleNode("startdate")?.InnerText}-{xmlNode.SelectSingleNode("enddate")?.InnerText}");
+            SetPropertyItemString(ExifTag.XPComment, $"Bing Image '{headline}' For {imageNode.Element("startdate")?.Value}-{imageNode.Element("enddate")?.Value}");
             SetPropertyItemString(ExifTag.XPKeywords, DateTime.Now.ToShortDateString());
         }
     }

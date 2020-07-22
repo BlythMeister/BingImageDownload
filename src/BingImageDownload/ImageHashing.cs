@@ -45,7 +45,7 @@ namespace BingImageDownload
         {
             if (HaveFilePathInHashTable(realFileName)) return true;
 
-            var testHash = GetRgbaHistogramHash(tempFilename);
+            var testHash = GetRgbHistogramHash(tempFilename);
             return histogramHashTable.Any(hash => hash.Equal(testHash));
         }
 
@@ -55,14 +55,19 @@ namespace BingImageDownload
             return histogramHashTable.Any(x => x.FileName.Equals(fileName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        internal void AddHash(string filePath)
+        internal void AddHash(string filePath, bool saveHashTable = true)
         {
             if (HaveFilePathInHashTable(filePath)) return;
 
-            histogramHashTable.Add(GetRgbaHistogramHash(filePath));
+            histogramHashTable.Add(GetRgbHistogramHash(filePath));
+
+            if (saveHashTable)
+            {
+                SaveHashTableBin();
+            }
         }
 
-        internal void SaveHashTableBin()
+        private void SaveHashTableBin()
         {
             serializer.Serialize(histogramHashTable, histogramBinFile);
         }
@@ -81,13 +86,13 @@ namespace BingImageDownload
                 foreach (var file in Directory.GetFiles(paths.SavePath, "*.jpg").Where(x => !HaveFilePathInHashTable(x)))
                 {
                     consoleWriter.WriteLine($"Hashing file: {file}");
-                    AddHash(file);
+                    AddHash(file, false);
                 }
 
                 foreach (var file in Directory.GetFiles(paths.ArchivePath, "*.jpg").Where(x => !HaveFilePathInHashTable(x)))
                 {
                     consoleWriter.WriteLine($"Hashing file: {file}");
-                    AddHash(file);
+                    AddHash(file, false);
                 }
             }
             catch (Exception)
@@ -103,30 +108,32 @@ namespace BingImageDownload
             }
         }
 
-        private HistogramHash GetRgbaHistogramHash(string filePath)
+        private HistogramHash GetRgbHistogramHash(string filePath)
         {
             var histogramFile = Path.Combine(paths.HistogramPath, Guid.NewGuid() + ".jpg");
             File.Copy(filePath, histogramFile);
-            var rgba = new List<RgbaPixelData>();
+            var Rgb = new List<RgbPixelData>();
             var fileName = Path.GetFileName(filePath);
 
-            using (var image = Image.Load<Rgba32>(histogramFile))
+            using (var image = Image.Load<Rgb24>(histogramFile))
             {
-                image.Mutate(x => x.Resize(new Size(32)));
+                //Scale down from 1920*1080 to 48*27 - this will pixelate but enough to tell differences.
+                //This means 1296 total pixels rather than 2073600.
+                image.Mutate(x => x.Resize(48, 27).Grayscale());
 
                 for (var x = 0; x < image.Width; x++)
                 {
                     for (var y = 0; y < image.Height; y++)
                     {
                         var pixel = image[x, y];
-                        rgba.Add(new RgbaPixelData(x, y, pixel.Rgba));
+                        Rgb.Add(new RgbPixelData(x, y, pixel.R, pixel.G, pixel.B));
                     }
                 }
             }
 
             File.Delete(histogramFile);
 
-            return new HistogramHash(fileName, rgba);
+            return new HistogramHash(fileName, Rgb);
         }
     }
 }

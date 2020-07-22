@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using System.Xml;
+using System.Xml.Linq;
 
 namespace BingImageDownload
 {
@@ -53,53 +53,52 @@ namespace BingImageDownload
                 consoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
                 var countryImages = 0;
                 var countryDuplicateImages = 0;
-                var currentIndex = 0;
                 var moreImages = true;
-                var startDate = string.Empty;
-                var endDate = string.Empty;
+                var datePairs = new Dictionary<(string start, string end), XElement>();
                 while (moreImages)
                 {
-                    var xmlNodeList = GetImages(currentIndex, country.Name);
+                    var imageNodes = GetImages(datePairs.Count, country.Name);
 
-                    if (xmlNodeList == null)
+                    if (!imageNodes.Any())
                     {
                         moreImages = false;
                     }
                     else
                     {
-                        foreach (XmlNode xmlNode in xmlNodeList)
+                        foreach (var imageNode in imageNodes)
                         {
-                            var nodeStartDate = xmlNode.SelectSingleNode("startdate")?.InnerText;
-                            var nodeEndDate = xmlNode.SelectSingleNode("enddate")?.InnerText;
+                            var startDate = imageNode.Element("startdate")?.Value;
+                            var endDate = imageNode.Element("enddate")?.Value;
 
-                            if (startDate == nodeStartDate && endDate == nodeEndDate)
+                            if (datePairs.Any(x => x.Key.start == startDate && x.Key.end == endDate))
                             {
                                 moreImages = false;
-                                break;
+                                continue;
                             }
 
-                            startDate = nodeStartDate;
-                            endDate = nodeEndDate;
-                            var imageUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
-                            consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} index {currentIndex} was: {imageUrl}");
-                            try
-                            {
-                                if (DownloadAndSaveImage(xmlNode))
-                                {
-                                    countryImages++;
-                                }
-                                else
-                                {
-                                    countryDuplicateImages++;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                consoleWriter.WriteLine("There was an error getting image", ex);
-                            }
+                            datePairs.Add((startDate, endDate), imageNode);
                         }
+                    }
+                }
 
-                        currentIndex += 1;
+                foreach (var ((startDate, endDate), imageNode) in datePairs.OrderBy(x => x.Key.start))
+                {
+                    var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_1920x1080.jpg";
+                    consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
+                    try
+                    {
+                        if (DownloadAndSaveImage(imageNode, imageUrl))
+                        {
+                            countryImages++;
+                        }
+                        else
+                        {
+                            countryDuplicateImages++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        consoleWriter.WriteLine("There was an error getting image", ex);
                     }
                 }
 
@@ -112,28 +111,25 @@ namespace BingImageDownload
             consoleWriter.WriteLine($"Found {downloadedImages} new images");
         }
 
-        internal bool DownloadAndSaveImage(XmlNode xmlNode)
+        internal bool DownloadAndSaveImage(XElement imageNode, string imageUrl)
         {
-            var fileUrl = $"{Url}{xmlNode.SelectSingleNode("urlBase")?.InnerText}_1920x1080.jpg";
-            if (urlsRetrieved.Contains(fileUrl))
+            if (urlsRetrieved.Contains(imageUrl))
             {
                 consoleWriter.WriteLine(2, "Already Downloaded Image URL");
                 return false;
             }
 
-            var filePath = Path.Combine(paths.SavePath, GetFileName(xmlNode));
+            var filePath = Path.Combine(paths.SavePath, GetFileName(imageUrl));
             var tempFilename = Path.Combine(paths.DownloadPath, Guid.NewGuid() + ".jpg");
 
             try
             {
-                using (var client = new WebClient())
-                {
-                    client.DownloadFile(fileUrl, tempFilename);
-                }
+                using var client = new WebClient();
+                client.DownloadFile(imageUrl, tempFilename);
             }
             catch (Exception e)
             {
-                consoleWriter.WriteLine(2, $"Error downloading image from url: {fileUrl}", e);
+                consoleWriter.WriteLine(2, $"Error downloading image from url: {imageUrl}", e);
                 return false;
             }
 
@@ -145,7 +141,7 @@ namespace BingImageDownload
                 consoleWriter.WriteLine(3, "Found New Image");
                 using (var srcImg = Image.Load(tempFilename))
                 {
-                    imagePropertyHandling.SetTitleOnImage(xmlNode, srcImg);
+                    imagePropertyHandling.SetImageExifTags(imageNode, srcImg);
                     srcImg.Save(filePath);
                 }
                 imageHashing.AddHash(filePath);
@@ -155,17 +151,15 @@ namespace BingImageDownload
                 consoleWriter.WriteLine(3, "Identical Image Downloaded");
             }
 
-            urlsRetrieved.Add(fileUrl);
+            urlsRetrieved.Add(imageUrl);
+            SaveUrlBin();
             File.Delete(tempFilename);
             return newImage;
         }
 
-        internal string GetFileName(XmlNode xmlNode)
+        internal string GetFileName(string imageUrl)
         {
-            var nameNode = xmlNode.SelectSingleNode("urlBase");
-            if (nameNode == null) throw new Exception("Missing urlBase Node");
-
-            var name = nameNode.InnerText.Substring(7);
+            var name = imageUrl.Substring(7 + Url.Length);
             if (name.Contains("_"))
             {
                 name = name.Substring(0, name.IndexOf("_", StringComparison.Ordinal));
@@ -181,33 +175,30 @@ namespace BingImageDownload
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 
-        internal XmlNodeList GetImages(int currentIndex, string country)
+        internal List<XElement> GetImages(int currentIndex, string country)
         {
-            var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=1&mkt={country}";
+            var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=5&mkt={country}";
 
             try
             {
-                using (var client = new WebClient())
+                using var client = new WebClient();
+                var output = client.DownloadString(urlToLoad);
+                if (output.Length > 0 && output.Contains("<images>"))
                 {
-                    var output = client.DownloadString(urlToLoad);
-                    if (output.Length > 0 && output.Contains("<images>"))
+                    try
                     {
-                        try
-                        {
-                            var xmlDocument = new XmlDocument();
-                            xmlDocument.LoadXml(output);
+                        var xDocument = XDocument.Parse(output);
 
-                            return xmlDocument.GetElementsByTagName("image");
-                        }
-                        catch (Exception e)
-                        {
-                            consoleWriter.WriteLine("Error getting images from XML response", e);
-                            return null;
-                        }
+                        return xDocument.Descendants("image").ToList();
                     }
-
-                    return null;
+                    catch (Exception e)
+                    {
+                        consoleWriter.WriteLine("Error getting images from XML response", e);
+                        return null;
+                    }
                 }
+
+                return null;
             }
             catch (Exception e)
             {
@@ -216,7 +207,7 @@ namespace BingImageDownload
             }
         }
 
-        internal void SaveUrlBin()
+        private void SaveUrlBin()
         {
             serializer.Serialize(urlsRetrieved, urlsRetrievedBinFile);
         }

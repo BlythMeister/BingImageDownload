@@ -33,9 +33,9 @@ namespace BingImageDownload
             }
             finally
             {
-                Thread.Sleep(TimeSpan.FromSeconds(30));
-                bingInteractionAndParsing.SaveUrlBin();
-                imageHashing.SaveHashTableBin();
+                consoleWriter.WriteLine("Done, waiting 15 seconds before clearing up");
+                Thread.Sleep(TimeSpan.FromSeconds(15));
+                consoleWriter.WriteLine("Clearing up");
                 fileClearer.ArchiveOldImages();
                 fileClearer.ClearLogFiles();
                 fileClearer.ClearTempFolders();

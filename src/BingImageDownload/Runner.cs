@@ -51,7 +51,7 @@ namespace BingImageDownload
                 consoleWriter.WriteLine($"Found {downloadedImages} new images");
                 consoleWriter.WriteLine($"Found {duplicateImages} duplicate images");
                 consoleWriter.WriteLine($"Found {seenUrls} urls already downloaded");
-                consoleWriter.WriteLine($"Duration {stopwatch.Elapsed.TotalMinutes} minutes");
+                consoleWriter.WriteLine($"Duration {Math.Round(stopwatch.Elapsed.TotalMinutes, 2)} minutes");
 
                 if (cancellationToken.IsCancellationRequested)
                 {

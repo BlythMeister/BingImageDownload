@@ -104,7 +104,7 @@ namespace BingImageDownload
             consoleWriter.WriteLine($"Found {countryDownloadedImages} new images for {country.Name}");
             consoleWriter.WriteLine($"Found {countryDuplicateImages} duplicate images for {country.Name}");
             consoleWriter.WriteLine($"Found {countrySeenUrls} urls already downloaded for {country.Name}");
-            consoleWriter.WriteLine($"Duration {stopwatch.Elapsed.TotalSeconds} seconds for {country.Name}");
+            consoleWriter.WriteLine($"Duration {Math.Round(stopwatch.Elapsed.TotalSeconds, 2)} seconds for {country.Name}");
             consoleWriter.WriteLine("");
 
             return (countryDownloadedImages, countryDuplicateImages, countrySeenUrls);

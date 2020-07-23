@@ -29,7 +29,7 @@ namespace BingImageDownload
             this.imagePropertyHandling = imagePropertyHandling;
             this.paths = paths;
             this.serializer = serializer;
-            urlsRetrievedBinFile = Path.Combine(paths.AppData, "urlsRetrieved.bin");
+            urlsRetrievedBinFile = Path.Combine(paths.AppData, "imageUrlsRetrieved.bin");
 
             urlsRetrieved = serializer.Deserialize<List<string>>(urlsRetrievedBinFile).ToList();
 
@@ -76,10 +76,12 @@ namespace BingImageDownload
             foreach (var ((startDate, endDate), imageNode) in datePairs.OrderBy(x => x.Key.start))
             {
                 var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_1920x1080.jpg";
+                var copyright = imageNode.Element("copyright")?.Value;
+                var headline = imageNode.Element("headline")?.Value;
                 consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
                 try
                 {
-                    var result = DownloadAndSaveImage(imageNode, imageUrl);
+                    var result = DownloadAndSaveImage(copyright, headline, imageUrl);
                     switch (result)
                     {
                         case DownloadResult.SeenUrl:
@@ -110,7 +112,7 @@ namespace BingImageDownload
             return (countryDownloadedImages, countryDuplicateImages, countrySeenUrls);
         }
 
-        private DownloadResult DownloadAndSaveImage(XElement imageNode, string imageUrl)
+        private DownloadResult DownloadAndSaveImage(string copyright, string headline, string imageUrl)
         {
             if (urlsRetrieved.Contains(imageUrl))
             {
@@ -149,7 +151,7 @@ namespace BingImageDownload
                 consoleWriter.WriteLine(3, "Found New Image");
                 using (var srcImg = Image.Load(tempFilename))
                 {
-                    imagePropertyHandling.SetImageExifTags(imageNode, srcImg);
+                    imagePropertyHandling.SetImageExifTags(copyright, headline, srcImg);
                     srcImg.Save(filePath);
                 }
                 imageFingerprinting.AddFingerprint(filePath);
@@ -186,7 +188,7 @@ namespace BingImageDownload
 
         private List<XElement> GetImages(int currentIndex, string country)
         {
-            var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=5&mkt={country}";
+            var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=8&mkt={country}";
 
             try
             {

@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace BingImageDownload
 {
-    public class HistogramHash
+    public class ImageFingerprint
     {
         public string FileName { get; }
         public List<RgbPixelData> Rgb { get; }
 
-        public HistogramHash(string fileName, List<RgbPixelData> rgb)
+        public ImageFingerprint(string fileName, List<RgbPixelData> rgb)
         {
             FileName = fileName;
             Rgb = rgb;
@@ -20,11 +20,11 @@ namespace BingImageDownload
         {
             if (string.IsNullOrWhiteSpace(FileName)) return true;
             if (!File.Exists(Path.Combine(paths.SavePath, FileName)) && !File.Exists(Path.Combine(paths.ArchivePath, FileName))) return true;
-            if (Rgb == null || !Rgb.Any()) return true;
+            if (Rgb == null || Rgb.Count != 1296 || Rgb.All(x => x.Rgb == 0)) return true;
             return false;
         }
 
-        internal bool Equal(HistogramHash other)
+        internal bool Equal(ImageFingerprint other)
         {
             var differencesOverTolerance = 0f;
 
@@ -33,7 +33,7 @@ namespace BingImageDownload
                 var otherVal = other.Rgb.FirstOrDefault(x => x.X.Equals(val.X) && x.Y.Equals(val.Y));
                 if (otherVal == null) return false;
 
-                var difference = Math.Abs(val.RGB - otherVal.RGB);
+                var difference = Math.Abs(val.Rgb - otherVal.Rgb);
                 if (difference > 3)
                 {
                     differencesOverTolerance++;
@@ -42,7 +42,21 @@ namespace BingImageDownload
 
             var differencePercent = differencesOverTolerance / Rgb.Count * 100;
 
-            return differencePercent < 1f;
+            return differencePercent < 5f;
+        }
+
+        public class RgbPixelData
+        {
+            public int Rgb { get; }
+            public int X { get; }
+            public int Y { get; }
+
+            public RgbPixelData(int x, int y, int rgb)
+            {
+                Rgb = rgb;
+                X = x;
+                Y = y;
+            }
         }
     }
 }

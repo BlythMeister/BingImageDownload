@@ -13,7 +13,15 @@ namespace BingImageDownload
         internal ConsoleWriter(Paths paths)
         {
             Console.OutputEncoding = Encoding.UTF8;
-            logWriter = new StreamWriter(Path.Combine(paths.LogPath, $"Log-{DateTime.UtcNow:yyyy-MM-dd}.txt"), false, Encoding.UTF8);
+            var logPath = Path.Combine(paths.LogPath, $"Log {DateTime.UtcNow:yyyy-MM-dd}.txt");
+            var counter = 0;
+            while (File.Exists(logPath))
+            {
+                counter++;
+                logPath = Path.Combine(paths.LogPath, $"Log {DateTime.UtcNow:yyyy-MM-dd} ({counter}).txt");
+            }
+
+            logWriter = new StreamWriter(logPath, false, Encoding.UTF8);
 
             if (tempBuilder.Length > 0)
             {
@@ -66,7 +74,11 @@ namespace BingImageDownload
 
             if (tempBuilder.Length > 0)
             {
-                logWriter.Write(tempBuilder.ToString());
+                lock (lockThis)
+                {
+                    logWriter.Write(tempBuilder.ToString());
+                }
+
                 tempBuilder.Clear();
             }
 

@@ -1,11 +1,11 @@
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Xml.Linq;
 
 namespace BingImageDownload
@@ -15,108 +15,107 @@ namespace BingImageDownload
         private const string Url = "https://bing.com";
 
         private readonly ConsoleWriter consoleWriter;
-        private readonly ImageHashing imageHashing;
+        private readonly ImageFingerprinting imageFingerprinting;
         private readonly ImagePropertyHandling imagePropertyHandling;
         private readonly Paths paths;
         private readonly Serializer serializer;
         private readonly List<string> urlsRetrieved;
-        private readonly List<CultureInfo> countries;
         private readonly string urlsRetrievedBinFile;
 
-        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageHashing imageHashing, ImagePropertyHandling imagePropertyHandling, Paths paths, Serializer serializer)
+        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageFingerprinting imageFingerprinting, ImagePropertyHandling imagePropertyHandling, Paths paths, Serializer serializer)
         {
             this.consoleWriter = consoleWriter;
-            this.imageHashing = imageHashing;
+            this.imageFingerprinting = imageFingerprinting;
             this.imagePropertyHandling = imagePropertyHandling;
             this.paths = paths;
             this.serializer = serializer;
             urlsRetrievedBinFile = Path.Combine(paths.AppData, "urlsRetrieved.bin");
 
             urlsRetrieved = serializer.Deserialize<List<string>>(urlsRetrievedBinFile).ToList();
-            countries = CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => x.Name.Contains("-")).ToList();
 
             consoleWriter.WriteLine($"Have loaded {urlsRetrieved.Count} previous URLs");
-            consoleWriter.WriteLine($"Have loaded {countries.Count} countries");
         }
 
-        internal void GetBingImages(CancellationToken cancellationToken)
+        internal (int countryDownloadedImages, int countryDuplicateImages, int countrySeenUrls) GetBingImages(CultureInfo country)
         {
-            var downloadedImages = 0;
+            consoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-            foreach (var country in countries)
+            var countryDownloadedImages = 0;
+            var countryDuplicateImages = 0;
+            var countrySeenUrls = 0;
+            var moreImages = true;
+            var datePairs = new Dictionary<(string start, string end), XElement>();
+            while (moreImages)
             {
-                if (cancellationToken.IsCancellationRequested)
+                var imageNodes = GetImages(datePairs.Count, country.Name);
+
+                if (!imageNodes.Any())
                 {
-                    return;
+                    moreImages = false;
                 }
-
-                consoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
-                var countryImages = 0;
-                var countryDuplicateImages = 0;
-                var moreImages = true;
-                var datePairs = new Dictionary<(string start, string end), XElement>();
-                while (moreImages)
+                else
                 {
-                    var imageNodes = GetImages(datePairs.Count, country.Name);
+                    foreach (var imageNode in imageNodes)
+                    {
+                        var startDate = imageNode.Element("startdate")?.Value;
+                        var endDate = imageNode.Element("enddate")?.Value;
 
-                    if (!imageNodes.Any())
-                    {
-                        moreImages = false;
-                    }
-                    else
-                    {
-                        foreach (var imageNode in imageNodes)
+                        if (datePairs.Any(x => x.Key.start == startDate && x.Key.end == endDate))
                         {
-                            var startDate = imageNode.Element("startdate")?.Value;
-                            var endDate = imageNode.Element("enddate")?.Value;
-
-                            if (datePairs.Any(x => x.Key.start == startDate && x.Key.end == endDate))
-                            {
-                                moreImages = false;
-                                continue;
-                            }
-
-                            datePairs.Add((startDate, endDate), imageNode);
+                            moreImages = false;
+                            continue;
                         }
+
+                        datePairs.Add((startDate, endDate), imageNode);
                     }
                 }
-
-                foreach (var ((startDate, endDate), imageNode) in datePairs.OrderBy(x => x.Key.start))
-                {
-                    var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_1920x1080.jpg";
-                    consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
-                    try
-                    {
-                        if (DownloadAndSaveImage(imageNode, imageUrl))
-                        {
-                            countryImages++;
-                        }
-                        else
-                        {
-                            countryDuplicateImages++;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        consoleWriter.WriteLine("There was an error getting image", ex);
-                    }
-                }
-
-                downloadedImages += countryImages;
-                consoleWriter.WriteLine($"Found {countryImages} new images for {country.Name}");
-                consoleWriter.WriteLine($"Found {countryDuplicateImages} duplicate images for {country.Name}");
-                consoleWriter.WriteLine("");
             }
 
-            consoleWriter.WriteLine($"Found {downloadedImages} new images");
+            foreach (var ((startDate, endDate), imageNode) in datePairs.OrderBy(x => x.Key.start))
+            {
+                var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_1920x1080.jpg";
+                consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
+                try
+                {
+                    var result = DownloadAndSaveImage(imageNode, imageUrl);
+                    switch (result)
+                    {
+                        case DownloadResult.SeenUrl:
+                            countrySeenUrls++;
+                            break;
+
+                        case DownloadResult.DuplicateImage:
+                            countryDuplicateImages++;
+                            break;
+
+                        case DownloadResult.NewImage:
+                            countryDownloadedImages++;
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.WriteLine("There was an error getting image", ex);
+                }
+            }
+
+            consoleWriter.WriteLine($"Found {countryDownloadedImages} new images for {country.Name}");
+            consoleWriter.WriteLine($"Found {countryDuplicateImages} duplicate images for {country.Name}");
+            consoleWriter.WriteLine($"Found {countrySeenUrls} urls already downloaded for {country.Name}");
+            consoleWriter.WriteLine($"Duration {stopwatch.Elapsed.TotalSeconds} seconds for {country.Name}");
+            consoleWriter.WriteLine("");
+
+            return (countryDownloadedImages, countryDuplicateImages, countrySeenUrls);
         }
 
-        internal bool DownloadAndSaveImage(XElement imageNode, string imageUrl)
+        private DownloadResult DownloadAndSaveImage(XElement imageNode, string imageUrl)
         {
             if (urlsRetrieved.Contains(imageUrl))
             {
                 consoleWriter.WriteLine(2, "Already Downloaded Image URL");
-                return false;
+                return DownloadResult.SeenUrl;
             }
 
             var tempFilename = Path.Combine(paths.DownloadPath, Guid.NewGuid() + ".jpg");
@@ -129,18 +128,18 @@ namespace BingImageDownload
             catch (Exception e)
             {
                 consoleWriter.WriteLine(2, $"Error downloading image from url: {imageUrl}", e);
-                return false;
+                return DownloadResult.Error;
             }
 
             consoleWriter.WriteLine(2, "Downloaded Image, Checking If Duplicate");
             var newImage = false;
-            var haveIdenticalImage = imageHashing.HaveIdenticalImageInHashTable(tempFilename);
+            var haveIdenticalImage = imageFingerprinting.HaveIdenticalImageInFingerprints(tempFilename);
 
             if (!haveIdenticalImage)
             {
                 var filePath = Path.Combine(paths.SavePath, GetFileName(imageUrl));
                 var counter = 0;
-                while (imageHashing.HaveFileNameInHashTable(filePath))
+                while (imageFingerprinting.HaveFileNameInFingerprints(filePath))
                 {
                     counter++;
                     filePath = Path.Combine(paths.SavePath, GetFileName(imageUrl, counter));
@@ -153,7 +152,7 @@ namespace BingImageDownload
                     imagePropertyHandling.SetImageExifTags(imageNode, srcImg);
                     srcImg.Save(filePath);
                 }
-                imageHashing.AddHash(filePath);
+                imageFingerprinting.AddFingerprint(filePath);
             }
             else
             {
@@ -161,12 +160,13 @@ namespace BingImageDownload
             }
 
             urlsRetrieved.Add(imageUrl);
+
             SaveUrlBin();
             File.Delete(tempFilename);
-            return newImage;
+            return newImage ? DownloadResult.NewImage : DownloadResult.DuplicateImage;
         }
 
-        internal string GetFileName(string imageUrl, int counter = 0)
+        private string GetFileName(string imageUrl, int counter = 0)
         {
             var name = imageUrl.Substring(7 + Url.Length);
             if (name.Contains("_"))
@@ -184,7 +184,7 @@ namespace BingImageDownload
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 
-        internal List<XElement> GetImages(int currentIndex, string country)
+        private List<XElement> GetImages(int currentIndex, string country)
         {
             var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=5&mkt={country}";
 
@@ -219,6 +219,14 @@ namespace BingImageDownload
         private void SaveUrlBin()
         {
             serializer.Serialize(urlsRetrieved, urlsRetrievedBinFile);
+        }
+
+        private enum DownloadResult
+        {
+            Error,
+            SeenUrl,
+            DuplicateImage,
+            NewImage
         }
     }
 }

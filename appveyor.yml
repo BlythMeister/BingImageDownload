@@ -1,5 +1,20 @@
 version: 1.0.{build}
 image: Visual Studio 2019
+skip_tags: true
+skip_branch_with_pr: true
+skip_commits:
+  files:
+    - .github/*
+    - .paket/*
+    - '**/*.md'    
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '$(appveyor_build_version)'
+  package_version: '$(appveyor_build_version)'
+  assembly_version: '$(appveyor_build_version)'
+  file_version: '$(appveyor_build_version)'
+  informational_version: '$(appveyor_build_version)'
 build_script:
 - cmd: >-
     dotnet tool restore
@@ -15,6 +30,9 @@ deploy:
   on:
     branch: master
 - provider: GitHub
+  tag: v$(appveyor_build_version)
+  release: v$(appveyor_build_version)
+  description: Release v$(appveyor_build_version)
   repository: BlythMeister/BingImageDownload
   artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:

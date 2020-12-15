@@ -27,7 +27,7 @@ artifacts:
 deploy:
 - provider: NuGet
   api_key:
-    secure: /wJd2nu0y6iAV8NOm4gAoS4+O2wkh05urXnJkB7V0wh0ne+iM8Z7mSQjEiagijPK
+    secure: $(blythmeister_nuget_key)
   artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:
     branch: master
@@ -36,7 +36,7 @@ deploy:
   release: v$(appveyor_build_version)
   description: Release v$(appveyor_build_version)
   auth_token:
-    secure: g+iWKsE2NIl0nbHRppdKG9viG1Drk5x6U++4dXtMfM9FLyOFqaRafq6qKpkyO9x7
+    secure: $(blythmeister_github_key)
   repository: BlythMeister/BingImageDownload
   artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:

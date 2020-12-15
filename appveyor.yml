@@ -1,20 +1,5 @@
 version: 1.0.{build}
 image: Visual Studio 2019
-skip_tags: true
-skip_branch_with_pr: true
-skip_commits:
-  files:
-    - .github/*
-    - .paket/*
-    - '**/*.md'
-dotnet_csproj:
-  patch: true
-  file: '**\*.csproj'
-  version: '$(appveyor_build_version)'
-  package_version: '$(appveyor_build_version)'
-  assembly_version: '$(appveyor_build_version)'
-  file_version: '$(appveyor_build_version)'
-  informational_version: '$(appveyor_build_version)'
 build_script:
 - cmd: >-
     dotnet tool restore
@@ -26,17 +11,10 @@ artifacts:
   name: BingImageDownload.$(appveyor_build_version).nupkg
 deploy:
 - provider: NuGet
-  api_key:
-    secure: /wJd2nu0y6iAV8NOm4gAoS4+O2wkh05urXnJkB7V0wh0ne+iM8Z7mSQjEiagijPK
   artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:
     branch: master
 - provider: GitHub
-  tag: v$(appveyor_build_version)
-  release: v$(appveyor_build_version)
-  description: Release v$(appveyor_build_version)
-  auth_token:
-    secure: g+iWKsE2NIl0nbHRppdKG9viG1Drk5x6U++4dXtMfM9FLyOFqaRafq6qKpkyO9x7
   repository: BlythMeister/BingImageDownload
   artifact: BingImageDownload.$(appveyor_build_version).nupkg
   on:

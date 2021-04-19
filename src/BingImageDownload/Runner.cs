@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 
 namespace BingImageDownload
@@ -12,6 +13,18 @@ namespace BingImageDownload
         {
             var paths = new Paths(runnerArgs.Path);
             var consoleWriter = new ConsoleWriter(paths);
+
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var version = FileVersionInfo.GetVersionInfo(assemblyLocation).ProductVersion;
+
+            consoleWriter.WriteLine("----------------------------");
+            consoleWriter.WriteLine("|                          |");
+            consoleWriter.WriteLine("|    Bing Image Download   |");
+            consoleWriter.WriteLine($"|{version.PadLeft(9 + version.Length).PadRight(26)}|");
+            consoleWriter.WriteLine("|                          |");
+            consoleWriter.WriteLine("|    Author: Chris Blyth   |");
+            consoleWriter.WriteLine("|                          |");
+            consoleWriter.WriteLine("----------------------------");
 
             consoleWriter.WriteLine($"Saving to: {paths.SavePath}");
 

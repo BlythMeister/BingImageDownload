@@ -28,6 +28,7 @@ namespace BingImageDownload
                 return true;
             }
 
+            //Check number of pixels is correct (96*54)
             if (!(Rgb is { Count: 5184 }) || Rgb.All(x => x.Rgb == 0))
             {
                 return true;
@@ -39,7 +40,6 @@ namespace BingImageDownload
         internal bool Equal(ImageFingerprint other)
         {
             var differencesOverTolerance = 0f;
-
             foreach (var val in Rgb)
             {
                 var otherVal = other.Rgb.FirstOrDefault(x => x.X.Equals(val.X) && x.Y.Equals(val.Y));
@@ -52,12 +52,15 @@ namespace BingImageDownload
                 if (difference > 3)
                 {
                     differencesOverTolerance++;
+                    var differencePercent = differencesOverTolerance / Rgb.Count * 100;
+                    if (differencePercent > 5f)
+                    {
+                        return false;
+                    }
                 }
             }
 
-            var differencePercent = differencesOverTolerance / Rgb.Count * 100;
-
-            return differencePercent < 5f;
+            return true;
         }
 
         public class RgbPixelData

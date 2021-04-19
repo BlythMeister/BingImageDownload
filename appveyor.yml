@@ -17,8 +17,6 @@ dotnet_csproj:
   informational_version: '$(appveyor_build_version)'
 build_script:
 - cmd: >-
-    dotnet tool restore
-
     dotnet pack src\BingImageDownload.sln --configuration Release
 test: off
 artifacts:

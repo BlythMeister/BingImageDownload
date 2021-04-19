@@ -1,8 +1,0 @@
-RESTRICTION: == netcoreapp3.1
-NUGET
-  remote: https://api.nuget.org/v3/index.json
-    McMaster.Extensions.CommandLineUtils (3.0)
-      System.ComponentModel.Annotations (>= 4.7)
-    Newtonsoft.Json (12.0.3)
-    SixLabors.ImageSharp (1.0.0-rc0003)
-    System.ComponentModel.Annotations (4.7)

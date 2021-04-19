@@ -1,7 +1,0 @@
-framework: auto-detect
-source https://api.nuget.org/v3/index.json
-
-nuget McMaster.Extensions.CommandLineUtils
-nuget Newtonsoft.Json
-nuget SixLabors.ImageSharp prerelease
-

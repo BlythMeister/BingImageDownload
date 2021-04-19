@@ -18,9 +18,21 @@ namespace BingImageDownload
 
         internal bool IsInvalid(Paths paths)
         {
-            if (string.IsNullOrWhiteSpace(FileName)) return true;
-            if (!File.Exists(Path.Combine(paths.SavePath, FileName)) && !File.Exists(Path.Combine(paths.ArchivePath, FileName))) return true;
-            if (Rgb == null || Rgb.Count != 1296 || Rgb.All(x => x.Rgb == 0)) return true;
+            if (string.IsNullOrWhiteSpace(FileName))
+            {
+                return true;
+            }
+
+            if (!File.Exists(Path.Combine(paths.SavePath, FileName)) && !File.Exists(Path.Combine(paths.ArchivePath, FileName)))
+            {
+                return true;
+            }
+
+            if (!(Rgb is { Count: 5184 }) || Rgb.All(x => x.Rgb == 0))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -31,7 +43,10 @@ namespace BingImageDownload
             foreach (var val in Rgb)
             {
                 var otherVal = other.Rgb.FirstOrDefault(x => x.X.Equals(val.X) && x.Y.Equals(val.Y));
-                if (otherVal == null) return false;
+                if (otherVal == null)
+                {
+                    return false;
+                }
 
                 var difference = Math.Abs(val.Rgb - otherVal.Rgb);
                 if (difference > 3)

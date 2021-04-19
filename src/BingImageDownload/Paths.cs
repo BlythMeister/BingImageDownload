@@ -16,7 +16,7 @@ namespace BingImageDownload
         {
             if (string.IsNullOrWhiteSpace(basePath))
             {
-                basePath = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+                basePath = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
                 if (string.IsNullOrWhiteSpace(basePath))
                 {
@@ -33,12 +33,35 @@ namespace BingImageDownload
             HistogramPath = Path.Combine(basePath, "App_Data", "TempHistogram");
             LogPath = Path.Combine(basePath, "Logs");
 
-            if (!Directory.Exists(SavePath)) Directory.CreateDirectory(SavePath);
-            if (!Directory.Exists(ArchivePath)) Directory.CreateDirectory(ArchivePath);
-            if (!Directory.Exists(AppData)) Directory.CreateDirectory(AppData);
-            if (!Directory.Exists(DownloadPath)) Directory.CreateDirectory(DownloadPath);
-            if (!Directory.Exists(HistogramPath)) Directory.CreateDirectory(HistogramPath);
-            if (!Directory.Exists(LogPath)) Directory.CreateDirectory(LogPath);
+            if (!Directory.Exists(SavePath))
+            {
+                Directory.CreateDirectory(SavePath);
+            }
+
+            if (!Directory.Exists(ArchivePath))
+            {
+                Directory.CreateDirectory(ArchivePath);
+            }
+
+            if (!Directory.Exists(AppData))
+            {
+                Directory.CreateDirectory(AppData);
+            }
+
+            if (!Directory.Exists(DownloadPath))
+            {
+                Directory.CreateDirectory(DownloadPath);
+            }
+
+            if (!Directory.Exists(HistogramPath))
+            {
+                Directory.CreateDirectory(HistogramPath);
+            }
+
+            if (!Directory.Exists(LogPath))
+            {
+                Directory.CreateDirectory(LogPath);
+            }
         }
     }
 }

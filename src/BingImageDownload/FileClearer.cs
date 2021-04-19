@@ -20,7 +20,10 @@ namespace BingImageDownload
         {
             try
             {
-                if (archiveMonths <= 0) return;
+                if (archiveMonths <= 0)
+                {
+                    return;
+                }
 
                 foreach (var file in Directory.GetFiles(paths.SavePath))
                 {
@@ -61,8 +64,15 @@ namespace BingImageDownload
         {
             try
             {
-                if (Directory.Exists(paths.DownloadPath)) Directory.Delete(paths.DownloadPath, true);
-                if (Directory.Exists(paths.HistogramPath)) Directory.Delete(paths.HistogramPath, true);
+                if (Directory.Exists(paths.DownloadPath))
+                {
+                    Directory.Delete(paths.DownloadPath, true);
+                }
+
+                if (Directory.Exists(paths.HistogramPath))
+                {
+                    Directory.Delete(paths.HistogramPath, true);
+                }
             }
             catch (Exception exception)
             {

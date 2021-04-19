@@ -35,7 +35,7 @@ namespace BingImageDownload
         {
             try
             {
-                File.WriteAllText(path, JsonConvert.SerializeObject(collection, Formatting.Indented));
+                File.WriteAllText(path, JsonConvert.SerializeObject(collection, Formatting.None));
             }
             catch (Exception e)
             {

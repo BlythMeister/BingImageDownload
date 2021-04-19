@@ -33,8 +33,11 @@ namespace BingImageDownload
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                foreach (var country in countries)
+                for (int i = 0; i < countries.Count; i++)
                 {
+                    var country = countries[i];
+                    consoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName} ({i + 1}/{countries.Count})");
+
                     if (cancellationToken.IsCancellationRequested)
                     {
                         break;

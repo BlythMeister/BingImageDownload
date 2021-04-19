@@ -55,7 +55,10 @@ namespace BingImageDownload
 
         internal void AddFingerprint(string filePath, bool saveFingerprints = true)
         {
-            if (HaveFileNameInFingerprints(filePath)) return;
+            if (HaveFileNameInFingerprints(filePath))
+            {
+                return;
+            }
 
             imageFingerprints.Add(GetImageFingerprint(filePath));
 
@@ -81,20 +84,17 @@ namespace BingImageDownload
 
             try
             {
-                foreach (var file in Directory.GetFiles(paths.SavePath, "*.jpg").Where(x => !HaveFileNameInFingerprints(x)))
+                var files = Directory.GetFiles(paths.SavePath, "*.jpg").Concat(Directory.GetFiles(paths.ArchivePath, "*.jpg")).Where(x => !HaveFileNameInFingerprints(x)).ToList();
+                for (var i = 0; i < files.Count; i++)
                 {
-                    consoleWriter.WriteLine($"Fingerprinting file: {file}");
-                    AddFingerprint(file, false);
-                }
-
-                foreach (var file in Directory.GetFiles(paths.ArchivePath, "*.jpg").Where(x => !HaveFileNameInFingerprints(x)))
-                {
-                    consoleWriter.WriteLine($"Fingerprinting file: {file}");
+                    var file = files[i];
+                    consoleWriter.WriteLine($"Fingerprinting file: {file} ({i + 1}/{files.Count})");
                     AddFingerprint(file, false);
                 }
             }
             catch (Exception) when (retryCount < 3)
             {
+                consoleWriter.WriteLine("Error...Starting over");
                 FingerprintExistingImages(retryCount + 1);
             }
         }
@@ -108,9 +108,9 @@ namespace BingImageDownload
 
             using (var image = Image.Load<Rgb24>(histogramFile))
             {
-                //Scale down from 1920*1080 to 48*27 - this will pixelate but enough to tell differences.
-                //This means 1,296 total pixels rather than 2,073,600.
-                image.Mutate(x => x.Resize(48, 27).Grayscale());
+                //Scale down from 1920*1080 to 96*54 (5% the size) - this will pixelate but enough to tell differences.
+                //This means 5,184 total pixels rather than 2,073,600.
+                image.Mutate(x => x.Resize(96, 54).Grayscale());
 
                 for (var x = 0; x < image.Width; x++)
                 {

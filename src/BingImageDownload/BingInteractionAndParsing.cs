@@ -38,7 +38,6 @@ namespace BingImageDownload
 
         internal (int countryDownloadedImages, int countryDuplicateImages, int countrySeenUrls) GetBingImages(CultureInfo country)
         {
-            consoleWriter.WriteLine($"Searching for images for {country.Name} - {country.DisplayName}");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -46,12 +45,12 @@ namespace BingImageDownload
             var countryDuplicateImages = 0;
             var countrySeenUrls = 0;
             var moreImages = true;
-            var datePairs = new Dictionary<(string start, string end), XElement>();
+            var datePairs = new List<(string start, string end, XElement node)>();
             while (moreImages)
             {
                 var imageNodes = GetImages(datePairs.Count, country.Name);
 
-                if (imageNodes ==  null || !imageNodes.Any())
+                if (imageNodes == null || !imageNodes.Any())
                 {
                     moreImages = false;
                 }
@@ -62,23 +61,26 @@ namespace BingImageDownload
                         var startDate = imageNode.Element("startdate")?.Value;
                         var endDate = imageNode.Element("enddate")?.Value;
 
-                        if (datePairs.Any(x => x.Key.start == startDate && x.Key.end == endDate))
+                        if (datePairs.Any(x => x.start == startDate && x.end == endDate))
                         {
                             moreImages = false;
                             continue;
                         }
 
-                        datePairs.Add((startDate, endDate), imageNode);
+                        datePairs.Add((startDate, endDate, imageNode));
                     }
                 }
             }
 
-            foreach (var ((startDate, endDate), imageNode) in datePairs.OrderBy(x => x.Key.start))
+            datePairs = datePairs.OrderBy(x => x.start).ToList();
+
+            for (int i = 0; i < datePairs.Count; i++)
             {
+                var (startDate, endDate, imageNode) = datePairs[i];
                 var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_1920x1080.jpg";
                 var copyright = imageNode.Element("copyright")?.Value;
                 var headline = imageNode.Element("headline")?.Value;
-                consoleWriter.WriteLine(1, $"Image for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
+                consoleWriter.WriteLine(1, $"Image {i + 1}/{datePairs.Count} for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
                 try
                 {
                     var result = DownloadAndSaveImage(copyright, headline, imageUrl);
@@ -168,7 +170,7 @@ namespace BingImageDownload
             return newImage ? DownloadResult.NewImage : DownloadResult.DuplicateImage;
         }
 
-        private string GetFileName(string imageUrl, int counter = 0)
+        private static string GetFileName(string imageUrl, int counter = 0)
         {
             var name = imageUrl.Substring(7 + Url.Length);
             if (name.Contains("_"))

@@ -51,7 +51,7 @@ namespace BingImageDownload
             {
                 var imageNodes = GetImages(datePairs.Count, country.Name);
 
-                if (!imageNodes.Any())
+                if (imageNodes ==  null || !imageNodes.Any())
                 {
                     moreImages = false;
                 }

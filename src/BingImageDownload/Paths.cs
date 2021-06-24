@@ -5,6 +5,7 @@ namespace BingImageDownload
 {
     internal class Paths
     {
+        internal string BasePath { get; }
         internal string SavePath { get; }
         internal string ArchivePath { get; }
         internal string AppData { get; }
@@ -16,22 +17,31 @@ namespace BingImageDownload
         {
             if (string.IsNullOrWhiteSpace(basePath))
             {
-                basePath = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+                var homeDir = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
-                if (string.IsNullOrWhiteSpace(basePath))
+                if (string.IsNullOrWhiteSpace(homeDir))
                 {
                     throw new NullReferenceException("No directory passed & unable to locate 'HOME' path");
                 }
 
-                basePath = Path.Combine(basePath, "BingImageDownload");
+                BasePath = Path.Combine(homeDir, "BingImageDownload");
+            }
+            else
+            {
+                BasePath = basePath;
             }
 
-            SavePath = basePath;
-            ArchivePath = Path.Combine(basePath, "Archive");
-            AppData = Path.Combine(basePath, "App_Data");
-            DownloadPath = Path.Combine(basePath, "App_Data", "Temp");
-            HistogramPath = Path.Combine(basePath, "App_Data", "TempHistogram");
-            LogPath = Path.Combine(basePath, "Logs");
+            SavePath = Path.Combine(BasePath, "Images"); ;
+            ArchivePath = Path.Combine(BasePath, "Archive");
+            AppData = Path.Combine(BasePath, "App_Data");
+            DownloadPath = Path.Combine(BasePath, "App_Data", "Temp");
+            HistogramPath = Path.Combine(BasePath, "App_Data", "TempHistogram");
+            LogPath = Path.Combine(BasePath, "Logs");
+
+            if (!Directory.Exists(BasePath))
+            {
+                Directory.CreateDirectory(BasePath);
+            }
 
             if (!Directory.Exists(SavePath))
             {

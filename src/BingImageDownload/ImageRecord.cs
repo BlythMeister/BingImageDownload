@@ -28,8 +28,7 @@ namespace BingImageDownload
                 return true;
             }
 
-            //Check number of pixels is correct (96*54)
-            if (!(Rgb is { Count: 5184 }) || Rgb.All(x => x.Rgb == 0))
+            if (Rgb.All(x => x.Rgb == 0))
             {
                 return true;
             }

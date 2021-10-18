@@ -8,7 +8,7 @@ Bing Image Downloader
 
 Simple command line application which will retrive the latest set of Bing images.
 
-Images are downloaded from Bing directly at: http://www.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=8&mkt={Culture}
+Images are downloaded from Bing directly at: https://www.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=8&mkt={Culture}
 E.g. https://www.bing.com/HPImageArchive.aspx?format=xml&idx=20&n=8&mkt=en-GB
 
 Bing Countries

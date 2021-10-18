@@ -108,9 +108,14 @@ namespace BingImageDownload
 
             using (var image = Image.Load<Rgb24>(histogramFile))
             {
-                //Scale down from 1920*1080 to 96*54 (5% the size) - this will pixelate but enough to tell differences.
-                //This means 5,184 total pixels rather than 2,073,600.
-                image.Mutate(x => x.Resize(96, 54).Grayscale());
+                //Scale down from to 100 wide by required height to maintain aspect ratio - this will pixelate but enough to tell differences.
+                //This means less pixels to compare
+                //Also grayscale to make matching more accurate
+                var scaleWidth = 100;
+                var scale = image.Width / scaleWidth;
+                var scaleHeight = image.Height / scale;
+
+                image.Mutate(x => x.Resize(scaleWidth, scaleHeight).Grayscale());
 
                 for (var x = 0; x < image.Width; x++)
                 {

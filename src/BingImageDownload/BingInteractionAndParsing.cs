@@ -21,8 +21,9 @@ namespace BingImageDownload
         private readonly Serializer serializer;
         private readonly List<string> urlsRetrieved;
         private readonly string urlsRetrievedBinFile;
+        private readonly string urlExtension;
 
-        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageFingerprinting imageFingerprinting, ImagePropertyHandling imagePropertyHandling, Paths paths, Serializer serializer)
+        public BingInteractionAndParsing(ConsoleWriter consoleWriter, ImageFingerprinting imageFingerprinting, ImagePropertyHandling imagePropertyHandling, Paths paths, Serializer serializer, string resolution)
         {
             this.consoleWriter = consoleWriter;
             this.imageFingerprinting = imageFingerprinting;
@@ -34,6 +35,13 @@ namespace BingImageDownload
             urlsRetrieved = serializer.Deserialize<List<string>>(urlsRetrievedBinFile).ToList();
 
             consoleWriter.WriteLine($"Have loaded {urlsRetrieved.Count} previous URLs");
+
+            urlExtension = resolution?.ToUpper() switch
+            {
+                "HD" => "1366x768.jpg",
+                "UHD" => "UHD.jpg",
+                _ => "1920x1080.jpg"
+            };
         }
 
         internal (int countryDownloadedImages, int countryDuplicateImages, int countrySeenUrls) GetBingImages(CultureInfo country)
@@ -77,7 +85,7 @@ namespace BingImageDownload
             for (int i = 0; i < datePairs.Count; i++)
             {
                 var (startDate, endDate, imageNode) = datePairs[i];
-                var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_1920x1080.jpg";
+                var imageUrl = $"{Url}{imageNode.Element("urlBase")?.Value}_{urlExtension}";
                 var copyright = imageNode.Element("copyright")?.Value;
                 var headline = imageNode.Element("headline")?.Value;
                 consoleWriter.WriteLine(1, $"Image {i + 1}/{datePairs.Count} for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");

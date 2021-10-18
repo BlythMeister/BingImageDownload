@@ -2,7 +2,7 @@
   "profiles": {
     "BingImageDownload": {
       "commandName": "Project",
-      "commandLineArgs": "-p \"F:\\Bing Wallpaper\" -a 1"
+      "commandLineArgs": "-p \"F:\\Bing Wallpaper\" -a 1 -r UHD -d 3"
     }
   }
 }

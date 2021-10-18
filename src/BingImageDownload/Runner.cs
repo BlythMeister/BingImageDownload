@@ -31,8 +31,8 @@ namespace BingImageDownload
             var serializer = new Serializer(consoleWriter);
             var imageFingerprinting = new ImageFingerprinting(consoleWriter, paths, serializer);
             var imagePropertyHandling = new ImagePropertyHandling();
-            var bingInteractionAndParsing = new BingInteractionAndParsing(consoleWriter, imageFingerprinting, imagePropertyHandling, paths, serializer);
-            var fileClearer = new FileClearer(consoleWriter, paths, runnerArgs.ArchiveMonths);
+            var bingInteractionAndParsing = new BingInteractionAndParsing(consoleWriter, imageFingerprinting, imagePropertyHandling, paths, serializer, runnerArgs.Resolution);
+            var fileClearer = new FileClearer(consoleWriter, paths, runnerArgs.ArchiveMonths, runnerArgs.DeleteMonths);
 
             try
             {
@@ -85,6 +85,7 @@ namespace BingImageDownload
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 consoleWriter.WriteLine("Clearing up");
                 fileClearer.ArchiveOldImages();
+                fileClearer.DeleteOldImages();
                 fileClearer.ClearLogFiles();
                 fileClearer.ClearTempFolders();
             }

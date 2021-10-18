@@ -8,12 +8,14 @@ namespace BingImageDownload
         private readonly ConsoleWriter consoleWriter;
         private readonly Paths paths;
         private readonly int archiveMonths;
+        private readonly int deleteMonths;
 
-        public FileClearer(ConsoleWriter consoleWriter, Paths paths, int? archiveMonths)
+        public FileClearer(ConsoleWriter consoleWriter, Paths paths, int? archiveMonths, int? deleteMonths)
         {
             this.consoleWriter = consoleWriter;
             this.paths = paths;
             this.archiveMonths = archiveMonths ?? 1;
+            this.deleteMonths = deleteMonths ?? 0;
         }
 
         internal void ArchiveOldImages()
@@ -38,6 +40,31 @@ namespace BingImageDownload
             catch (Exception exception)
             {
                 consoleWriter.WriteLine("Error archiving image", exception);
+            }
+        }
+
+        internal void DeleteOldImages()
+        {
+            try
+            {
+                if (deleteMonths <= 0)
+                {
+                    return;
+                }
+
+                foreach (var file in Directory.GetFiles(paths.ArchivePath))
+                {
+                    var fileInfo = new FileInfo(file);
+                    if (fileInfo.CreationTimeUtc < DateTime.UtcNow.AddMonths(deleteMonths * -1))
+                    {
+                        consoleWriter.WriteLine($"Deleting image {fileInfo.Name}");
+                        fileInfo.Delete();
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                consoleWriter.WriteLine("Error deleting image", exception);
             }
         }
 

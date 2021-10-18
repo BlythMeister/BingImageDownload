@@ -9,7 +9,7 @@ Bing Image Downloader
 Simple command line application which will retrive the latest set of Bing images.
 
 Images are downloaded from Bing directly at: http://www.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=8&mkt={Culture}
-E.g. http://www.bing.com/HPImageArchive.aspx?format=xml&idx=20&n=8&mkt=en-GB
+E.g. https://www.bing.com/HPImageArchive.aspx?format=xml&idx=20&n=8&mkt=en-GB
 
 Bing Countries
 =================
@@ -30,9 +30,11 @@ Usage
 Usage: BingImageDownload [options]
 
 Options:
-  -p|--path <PATH>      The path to where images should be saved (Default: C:\Temp\BingImageDownload)
-  -a|--archive <VALUE>  The number of months to archive after (Default: 1)
-  -?|-h|--help          Show help information
+  -p|--path <PATH>         The path to where images should be saved (Default: Home Path)
+  -a|--archive <VALUE>     The number of months to archive after (Default: 1)
+  -d|--delete <VALUE>      The number of months to delete after (Default: never)
+  -r|--resolution <VALUE>  The resolution for images (HD,FHD,UHD) (Default: FHD)
+  -?|-h|--help             Show help information.
 ```
 
 You can setup an automated scheduled task in windows to run the dotnet tool daily to get more images.

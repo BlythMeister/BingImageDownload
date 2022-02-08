@@ -5,7 +5,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace BingImageDownload
@@ -44,7 +45,7 @@ namespace BingImageDownload
             };
         }
 
-        internal (int countryDownloadedImages, int countryDuplicateImages, int countrySeenUrls) GetBingImages(CultureInfo country)
+        internal async Task<(int countryDownloadedImages, int countryDuplicateImages, int countrySeenUrls)> GetBingImages(CultureInfo country)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -56,7 +57,7 @@ namespace BingImageDownload
             var datePairs = new List<(string start, string end, XElement node)>();
             while (moreImages)
             {
-                var imageNodes = GetImages(datePairs.Count, country.Name);
+                var imageNodes = await GetImages(datePairs.Count, country.Name);
 
                 if (imageNodes == null || !imageNodes.Any())
                 {
@@ -91,7 +92,7 @@ namespace BingImageDownload
                 consoleWriter.WriteLine(1, $"Image {i + 1}/{datePairs.Count} for: '{country.Name}' on {startDate}-{endDate} was: {imageUrl}");
                 try
                 {
-                    var result = DownloadAndSaveImage(copyright, headline, imageUrl);
+                    var result = await DownloadAndSaveImage(copyright, headline, imageUrl);
                     switch (result)
                     {
                         case DownloadResult.SeenUrl:
@@ -122,7 +123,7 @@ namespace BingImageDownload
             return (countryDownloadedImages, countryDuplicateImages, countrySeenUrls);
         }
 
-        private DownloadResult DownloadAndSaveImage(string copyright, string headline, string imageUrl)
+        private async Task<DownloadResult> DownloadAndSaveImage(string copyright, string headline, string imageUrl)
         {
             if (urlsRetrieved.Contains(imageUrl))
             {
@@ -134,8 +135,10 @@ namespace BingImageDownload
 
             try
             {
-                using var client = new WebClient();
-                client.DownloadFile(imageUrl, tempFilename);
+                var client = new HttpClient();
+                var response = await client.GetAsync(imageUrl);
+                await using var fs = new FileStream(tempFilename, FileMode.CreateNew);
+                await response.Content.CopyToAsync(fs);
             }
             catch (Exception e)
             {
@@ -196,14 +199,14 @@ namespace BingImageDownload
             return Path.GetInvalidFileNameChars().Aggregate(name, (current, invalidChar) => current.Replace(invalidChar, '-'));
         }
 
-        private List<XElement> GetImages(int currentIndex, string country)
+        private async Task<List<XElement>> GetImages(int currentIndex, string country)
         {
             var urlToLoad = $"{Url}/HPImageArchive.aspx?format=xml&idx={currentIndex}&n=8&mkt={country}";
 
             try
             {
-                using var client = new WebClient();
-                var output = client.DownloadString(urlToLoad);
+                var client = new HttpClient();
+                var output = await client.GetStringAsync(urlToLoad);
                 if (output.Length > 0 && output.Contains("<images>"))
                 {
                     try

@@ -4,12 +4,13 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BingImageDownload
 {
     internal class Runner
     {
-        public static int Start(RunnerArgs runnerArgs, in CancellationToken cancellationToken)
+        public static async Task<int> StartAsync(RunnerArgs runnerArgs, CancellationToken cancellationToken)
         {
             var paths = new Paths(runnerArgs.Path);
             var consoleWriter = new ConsoleWriter(paths);
@@ -56,7 +57,7 @@ namespace BingImageDownload
                         break;
                     }
 
-                    var (countryDownloadedImages, countryDuplicateImages, countrySeenUrls) = bingInteractionAndParsing.GetBingImages(country);
+                    var (countryDownloadedImages, countryDuplicateImages, countrySeenUrls) = await bingInteractionAndParsing.GetBingImages(country);
 
                     downloadedImages += countryDownloadedImages;
                     duplicateImages += countryDuplicateImages;

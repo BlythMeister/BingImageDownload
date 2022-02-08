@@ -1,18 +1,19 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace BingImageDownload
 {
     internal class Program
     {
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             try
             {
                 Console.ResetColor();
                 Console.Clear();
-                return CommandLineApplication.Execute<RunnerArgs>(args);
+                return await CommandLineApplication.ExecuteAsync<RunnerArgs>(args);
             }
             finally
             {

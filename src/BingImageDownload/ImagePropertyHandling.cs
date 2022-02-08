@@ -1,7 +1,6 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System;
-using System.Text;
 
 namespace BingImageDownload
 {
@@ -22,16 +21,10 @@ namespace BingImageDownload
 
             image.Metadata.ExifProfile ??= new ExifProfile();
 
-            void SetPropertyItemString(ExifTag<byte[]> tag, string value)
-            {
-                var buffer = Encoding.Unicode.GetBytes(value);
-                image.Metadata.ExifProfile.SetValue(tag, buffer);
-            }
-
-            SetPropertyItemString(ExifTag.XPTitle, title);
-            SetPropertyItemString(ExifTag.XPAuthor, author);
-            SetPropertyItemString(ExifTag.XPComment, headline);
-            SetPropertyItemString(ExifTag.XPKeywords, DateTime.Now.ToShortDateString());
+            image.Metadata.ExifProfile.SetValue(ExifTag.XPTitle, title);
+            image.Metadata.ExifProfile.SetValue(ExifTag.XPAuthor, author);
+            image.Metadata.ExifProfile.SetValue(ExifTag.XPComment, headline);
+            image.Metadata.ExifProfile.SetValue(ExifTag.XPKeywords, DateTime.Now.ToShortDateString());
         }
     }
 }

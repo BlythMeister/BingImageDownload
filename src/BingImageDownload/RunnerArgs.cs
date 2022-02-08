@@ -1,5 +1,6 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BingImageDownload
 {
@@ -17,6 +18,6 @@ namespace BingImageDownload
         [Option("-r|--resolution <VALUE>", "The resolution for images (HD,FHD,UHD) (Default: FHD)", CommandOptionType.SingleValue)]
         public string Resolution { get; }
 
-        private int OnExecute(CancellationToken cancellationToken) => Runner.Start(this, cancellationToken);
+        private Task<int> OnExecuteAsync(CancellationToken cancellationToken) => Runner.StartAsync(this, cancellationToken);
     }
 }

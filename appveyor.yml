@@ -6,6 +6,8 @@ skip_commits:
   files:
     - .github/*
     - .paket/*
+    - docs/*
+    - '**/*.html'
     - '**/*.md'
 dotnet_csproj:
   patch: true

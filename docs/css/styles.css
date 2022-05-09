@@ -1,0 +1,243 @@
+html {
+    height: 100%;
+}
+
+body {
+    padding: 15px;
+    margin: 0;
+    background-image: -webkit-gradient( linear, left top, left bottom, color-stop(0.18, rgb(74, 12, 107)), color-stop(0.87, rgb(102, 153, 102)));
+    background: -moz-linear-gradient(top, #ABCDEF 0%, #FFFFFF 100%);
+    /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ABCDEF), color-stop(100%, #FFFFFF));
+    /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #ABCDEF 0%, #FFFFFF 100%);
+    /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #ABCDEF 0%, #FFFFFF 100%);
+    /* Opera11.10+ */
+    background: -ms-linear-gradient(top, #ABCDEF 0%, #FFFFFF 100%);
+    /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ABCDEF', endColorstr='#FFFFFF', GradientType=0);
+    /* IE6-9 */
+    background: linear-gradient(top, #ABCDEF 0%, #FFFFFF 100%);
+    /* W3C */
+    background-attachment: fixed;
+}
+
+.container-rounded {
+    border-radius: 10px;
+    box-shadow: 0 0 20px grey;
+    background-color: #FFFFFF;
+    padding: 15px;
+}
+
+.dropdown-menu-justified {
+    width: 100%;
+    text-align: center;
+}
+
+.dont-break-out {
+    /* These are technically the same, but use both */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    /* This is the dangerous one in WebKit, as it breaks things wherever */
+    word-break: break-all;
+    /* Instead use this non-standard one: */
+    word-break: break-word;
+    /* Adds a hyphen where the word breaks, if supported (No Blink) */
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+}
+
+.container {
+    display: table;
+    min-width: 260px;
+    box-sizing: border-box;
+}
+
+.container .row .no-float {
+    display: table-cell;
+    float: none;
+    vertical-align: top;
+}
+
+.header {
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid grey;
+}
+
+.footer {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    border-top: 1px solid grey;
+    padding-top: 10px;
+}
+
+.nav {
+    padding-left: 5px;
+}
+
+.mainFrame {
+    padding-left: 20px;
+    margin-bottom: 0;
+}
+
+@media (min-width:991px) {
+    .mainFrame {
+        border-right: 1px solid grey;
+    }
+}
+
+.sidebar {
+    height: 100%;
+}
+
+.sidebar .topItem {
+    padding-bottom: 10px;
+}
+
+.sidebar .avatar {
+    height: 80px;
+    width: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    box-shadow: 0 0 10px grey;
+}
+
+.sidebar .icons {
+    margin-bottom: 10px;
+}
+
+.sidebar .middleItem {
+    border-top: 1px solid grey;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+.sidebar .bottomItem {
+    border-top: 1px solid grey;
+    padding-top: 10px;
+}
+
+.sidebar .media-underline {
+    border-bottom: 1px solid grey;
+}
+
+.devide-bottom {
+    border-bottom: 1px solid grey;
+}
+
+.devide-top {
+    border-top: 1px solid grey;
+}
+
+.fab {
+    padding-top: 6px;
+    font-size: 18px;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+.far {
+    padding-top: 6px;
+    font-size: 18px;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+.fas {
+    padding-top: 6px;
+    font-size: 18px;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+a.fab:hover {
+    opacity: 0.7;
+    text-decoration: none;
+}
+
+a.fas:hover {
+    opacity: 0.7;
+    text-decoration: none;
+}
+
+a.far:hover {
+    opacity: 0.7;
+    text-decoration: none;
+}
+
+.fab.fa-twitter {
+    background: #1DA1F2;
+    color: #FFFFFF;
+}
+
+.fab.fa-linkedin {
+    background: #007BB5;
+    color: #FFFFFF;
+}
+
+.fab.fa-github {
+    background: #000000;
+    color: #FFFFFF;
+}
+
+.fab.fa-spotify {
+    background: #000000;
+    color: #1ED760;
+}
+
+.fas.fa-rss {
+    background: #FF6600;
+    color: #FFFFFF;
+}
+
+.fab.fa-youtube {
+    background: #FF0000;
+    color: #FFFFFF;
+}
+
+.fab.fa-keybase {
+    background: #E9ECE9;
+    color: #495057;
+}
+
+.fab.fa-facebook-f {
+    background: #1778F2;
+    color: #FFFFFF;
+}
+
+.far.fa-envelope {
+    background: #000000;
+    color: #FFFFFF;
+}
+
+.fab.fa-whatsapp {
+    background: #25D366;
+    color: #FFFFFF;
+}
+
+.fab.fa-amazon {
+    background: #131921;
+    color: #FFFFFF;
+}
+
+.fab.fa-goodreads-g {
+    background: #F4F1EA;
+    color: #372213;
+}

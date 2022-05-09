@@ -23,7 +23,7 @@ See https://github.com/BlythMeister/BingImageDownload for usages</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/BlythMeister/BingImageDownload</PackageProjectUrl>
+    <PackageProjectUrl>https://bing-images.blyth.me.uk</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE">

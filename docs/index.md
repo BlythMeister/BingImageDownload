@@ -3,8 +3,6 @@ title: Home
 description: "Simple command line application which will retrieve the latest set of Bing images."
 ---
 
-## Bing Image Downloader
-
 Simple command line application which will retrieve the latest set of Bing images.
 
 Images are downloaded from Bing directly at: `https://www.bing.com/HPImageArchive.aspx?format=xml&idx=0&n=8&mkt={Culture}`

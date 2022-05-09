@@ -187,38 +187,8 @@ a.far:hover {
     color: #FFFFFF;
 }
 
-.fab.fa-linkedin {
-    background: #007BB5;
-    color: #FFFFFF;
-}
-
 .fab.fa-github {
     background: #000000;
-    color: #FFFFFF;
-}
-
-.fab.fa-spotify {
-    background: #000000;
-    color: #1ED760;
-}
-
-.fas.fa-rss {
-    background: #FF6600;
-    color: #FFFFFF;
-}
-
-.fab.fa-youtube {
-    background: #FF0000;
-    color: #FFFFFF;
-}
-
-.fab.fa-keybase {
-    background: #E9ECE9;
-    color: #495057;
-}
-
-.fab.fa-facebook-f {
-    background: #1778F2;
     color: #FFFFFF;
 }
 
@@ -227,17 +197,7 @@ a.far:hover {
     color: #FFFFFF;
 }
 
-.fab.fa-whatsapp {
-    background: #25D366;
-    color: #FFFFFF;
-}
-
-.fab.fa-amazon {
-    background: #131921;
-    color: #FFFFFF;
-}
-
-.fab.fa-goodreads-g {
+.fab.fa-cloud-download-alt {
     background: #F4F1EA;
     color: #372213;
 }

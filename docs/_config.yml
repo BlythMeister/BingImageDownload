@@ -2,7 +2,6 @@
 title: Bing Image Download
 description: "Simple command line application which will retrieve the latest set of Bing images."
 url: https://bing-images.blyth.me.uk
-githubRepo: https://github.com/BlythMeister/BingImageDownload
 author: BlythMeister
 logo: /images/icon.png
 lang: en_GB
@@ -12,9 +11,8 @@ GoogleAnalytics: G-JZDFPBLNZE
 
 #Webmaster tools
 webmaster_verifications:
-  google: 
-  bing: 
-
+  google: HV11HFJBxWBjSBdvj2X1ARYcyV0gkh2RC2RN-BBPOQc
+  bing: 70C9C40BE160CF8A17564E2F00B21581
 #Social
 twitter:
     username: BlythMeister
